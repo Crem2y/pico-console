@@ -18,9 +18,17 @@ All hardware control and software stack are implemented from scratch without any
 
 Back of the console
 ![Back view](doc/back.jpg)
+
 ---
 
 ## License
+
+This project is licensed under the MIT License.  
+See [LICENSE](./LICENSE) for details.
+
+---
+
+### Third-party components
 
 This project is licensed primarily under the **MIT License**.  
 It also includes third-party components with the following licenses:
