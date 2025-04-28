@@ -10,7 +10,7 @@ Designed for learning and experimenting with embedded systems.
 - Audio: 4-channel soft mixing (DAC)
 - Input: I2C GPIO expander
 - Storage: SPI SD card (wip)
-- Other: Battery monitoring, IR
+- Other: Battery monitoring, IR (NEC only)
 
 All hardware control and software stack are implemented from scratch without any OS or external frameworks.
 
