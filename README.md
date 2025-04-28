@@ -29,6 +29,9 @@ It also includes third-party components with the following licenses:
   written by Limor Fried/Ladyada for Adafruit Industries, and licensed under the **MIT License**.  
   The required license notice is included directly in the source file.
 
+- This project includes code from the Adafruit_ILI9340 library by Limor Fried/Ladyada, licensed under the MIT License. See the original repository at 
+  https://github.com/adafruit/Adafruit_ILI9340.
+
 - Portions of the code are derived from the [Adafruit GFX Library](https://github.com/adafruit/Adafruit-GFX-Library),  
   which is licensed under the **BSD 3-Clause License**.  
   See `licenses/Adafruit-GFX-BSD.txt` for details.
