@@ -3,8 +3,8 @@
 #include "SD_SPI.hpp"
 
 SD_SPI::SD_SPI(int pin_cs, int pin_cd) {
-  _pin_cs = pin_cs;
-  _pin_cd = pin_cd;
+  this->_pin_cs = pin_cs;
+  this->_pin_cd = pin_cd;
 }
 
 void SD_SPI::init(void) {
@@ -21,4 +21,320 @@ void SD_SPI::init(void) {
   gpio_pull_up(SD_RX);
   gpio_set_function(SD_SCK, GPIO_FUNC_SPI);
   gpio_set_function(SD_TX, GPIO_FUNC_SPI);
+
+  this->info.is_inited = false;
+  this->info.type = SD_TYPE_UNKNOWN;
+}
+
+bool SD_SPI::card_check(void) {
+  return !gpio_get(_pin_cd);
+}
+
+int SD_SPI::card_init(void) {
+  uint8_t write_buf[16];
+  uint8_t read_buf[16];
+  uint32_t timeout = 1000;
+
+  if(!card_check()) {
+    return -1;
+  }
+
+  // set low speed
+  spi_init(SD_SPI_CH, 400 * 1000);
+
+  // set SD card to SPI mode
+  // CS high and send over 74 clocks
+  memset(write_buf, 0xFF, 10);
+  gpio_put(_pin_cs, 1);
+  spi_write_blocking(SD_SPI_CH, write_buf, 10); // 8 * 10 = 80 > 74
+
+  // send CMD0
+  if(send_cmd(SD_CMD0, NULL, read_buf, false) < 0) {
+    wprintf(L"CMD0 timeout\n");
+    return -1;
+  }
+
+  // send CMD8
+  write_buf[0] = 0x00;
+  write_buf[1] = 0x00;
+  write_buf[2] = 0x01;
+  write_buf[3] = 0xAA;
+  if(send_cmd(SD_CMD8, write_buf, read_buf, false) < 0) {
+    wprintf(L"CMD8 timeout\n");
+    return -8;
+  }
+
+  // ACMD41 loop
+  for(; timeout > 0; timeout--) {
+    // send CMD55
+    if(send_cmd(SD_CMD55, NULL, read_buf, false) < 0) {
+      wprintf(L"CMD55 timeout\n");
+      return -55;
+    }
+
+    // send ACMD41
+    write_buf[0] = 0x40;
+    write_buf[1] = 0x00;
+    write_buf[2] = 0x00;
+    write_buf[3] = 0x00;
+    if(send_cmd(SD_ACMD41, write_buf, read_buf, false) < 0) {
+      wprintf(L"ACMD41 timeout\n");
+      return -41;
+    }
+
+    if(read_buf[0] == 0x00) {
+      break;
+    }
+
+    sleep_ms(1);
+  }
+
+  if(!timeout) {
+    wprintf(L"ACMD41 loop timeout\n");
+    return -41;
+  }
+
+  // send CMD58
+  if(send_cmd(SD_CMD58, NULL, read_buf, false) < 0) {
+    wprintf(L"CMD58 timeout\n");
+    return -58;
+  }
+
+  if(read_buf[1] & 0x40) {
+    this->info.type = SD_TYPE_SDHC;
+  } else {
+    this->info.type = SD_TYPE_SDSC;
+  }
+
+  // send CMD9
+  if (send_cmd(SD_CMD9, NULL, read_buf, true) < 0 || read_buf[0] != 0x00) {
+    wprintf(L"CMD9 failed\n");
+    return -9;
+  }
+  
+  uint8_t csd[16];
+  if (read_data_block(csd, 16) < 0) {
+    wprintf(L"CSD read failed\n");
+    return -19;
+  }
+  
+  uint64_t capacity = 0;
+  if ((csd[0] >> 6) == 1) { // SDHC
+    uint32_t c_size = ((csd[7] & 0x3F) << 16) | (csd[8] << 8) | csd[9];
+    capacity = (uint64_t)(c_size + 1) * 512 * 1024;
+  } else { // SDSC
+    uint32_t c_size = ((csd[6] & 0x03) << 10) | (csd[7] << 2) | ((csd[8] & 0xC0) >> 6);
+    uint32_t c_size_mult = ((csd[9] & 0x03) << 1) | ((csd[10] & 0x80) >> 7);
+    uint32_t block_len = 1 << (csd[5] & 0x0F);
+    uint32_t mult = 1 << (c_size_mult + 2);
+    capacity = (uint64_t)(c_size + 1) * mult * block_len;
+  }
+
+  this->info.size = capacity;
+
+  // init complete, set high speed
+  wprintf(L"SD init ok!\n");
+  this->info.is_inited = true;
+  spi_init(SD_SPI_CH, 25 * 1000000);
+
+  wprintf(L"SD init complete!\n");
+  return 0;
+}
+
+int SD_SPI::card_deinit(void) {
+  if(!card_check()){
+    return -1;
+  }
+
+  this->info.is_inited = false;
+  this->info.type == SD_TYPE_UNKNOWN;
+  return 0;
+}
+
+int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_buf, bool keep_cs_low) {
+  uint8_t cmd_buf[6] = {0,};
+  uint32_t timeout = 512;
+  enum _sd_response_t response = SD_R_UNKNOWN;
+
+  cmd_buf[0] = (0x40 | (cmd & 0x3F));
+  gpio_put(_pin_cs, 0);
+
+  switch (cmd)
+  {
+  case SD_CMD0:
+    {
+      cmd_buf[5] = 0x95;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R1 response
+      response = SD_R1;
+    }
+    break;
+  case SD_CMD8:
+    {
+      memcpy(&cmd_buf[1], write_buf, 4);
+      cmd_buf[5] = 0x87;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R7 response
+      response = SD_R7;
+    }
+    break;
+  case SD_CMD9:
+    {
+      memcpy(&cmd_buf[1], write_buf, 4);
+      cmd_buf[5] = 0xFF;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R1 response
+      response = SD_R1;
+    }
+    break;
+  case SD_CMD55:
+    {
+      cmd_buf[5] = 0xFF;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R1 response
+      response = SD_R1;
+    }
+    break;
+  case SD_CMD58:
+    {
+      cmd_buf[5] = 0xFF;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R3 response
+      response = SD_R3;
+    }
+    break;
+  case SD_ACMD41:
+    {
+      memcpy(&cmd_buf[1], write_buf, 4);
+      cmd_buf[5] = 0xFF;
+      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+
+      // wait R1 response
+      response = SD_R1;
+    }
+    break;
+    default: // unknown cmd
+      gpio_put(_pin_cs, 1);
+      return -1;
+  }
+
+  // wait response
+  cmd_buf[0] = 0xFF;
+  for(; timeout > 0; timeout--)
+  {
+    spi_write_read_blocking(SD_SPI_CH, cmd_buf, read_buf, 1);
+    if((read_buf[0] & 0x80) == 0x00) {
+      break;
+    }
+  }
+
+  if(!timeout) {
+    gpio_put(_pin_cs, 1);
+    return -1;
+  }
+
+  // response
+  switch (response)
+  {
+    case SD_R1:
+    break;
+    case SD_R1B:
+    {
+      uint8_t busy;
+      do {
+        uint8_t dummy = 0xFF;
+        spi_write_read_blocking(SD_SPI_CH, &dummy, &busy, 1);
+      } while (busy != 0xFF);
+    }
+    break;
+    case SD_R2:
+    {
+      cmd_buf[2] = 0xFF;
+      spi_write_read_blocking(SD_SPI_CH, cmd_buf, &read_buf[1], 1);
+    }
+    break;
+    case SD_R3:
+    case SD_R7:
+    {
+      cmd_buf[2] = 0xFF;
+      cmd_buf[3] = 0xFF;
+      cmd_buf[4] = 0xFF;
+      spi_write_read_blocking(SD_SPI_CH, cmd_buf, &read_buf[1], 4);
+    }
+    break;
+  }
+
+  if (!keep_cs_low) {
+    gpio_put(_pin_cs, 1);
+  }
+
+  return 0;
+}
+
+int SD_SPI::sector_read(size_t sector_num, void* buf) {
+  if(!buf) {
+    return -1;
+  }
+
+  if(this->info.type == SD_TYPE_SDSC) {
+
+  } else if(this->info.type == SD_TYPE_SDHC) {
+
+  } else {
+    return -1;
+  }
+
+  return 0;
+}
+
+int SD_SPI::sector_write(size_t sector_num, void* buf) {
+  if(!buf) {
+    return -1;
+  }
+
+  if(this->info.type == SD_TYPE_SDSC) {
+
+  } else if(this->info.type == SD_TYPE_SDHC) {
+
+  } else {
+    return -1;
+  }
+
+  return 0;
+}
+
+int SD_SPI::read_data_block(uint8_t* out, size_t len) {
+  uint8_t dummy = 0xFF;
+  uint8_t token;
+  uint32_t timeout = 10000;
+
+  // 데이터 토큰(0xFE) 대기
+  gpio_put(_pin_cs, 0);
+  do {
+    spi_write_read_blocking(SD_SPI_CH, &dummy, &token, 1);
+    timeout--;
+  } while (token == 0xFF && timeout > 0);
+
+  if (token != 0xFE) {
+    wprintf(L"Unexpected token: 0x%02X\n", token);
+    gpio_put(_pin_cs, 1);
+    return -1;
+  }
+
+  // 데이터 수신
+  memset(out, 0xFF, len);
+  spi_write_read_blocking(SD_SPI_CH, out, out, len);
+
+  // CRC 2바이트 무시
+  uint8_t crc[2] = {0xFF, 0xFF};
+  spi_write_read_blocking(SD_SPI_CH, crc, crc, 2);
+
+  gpio_put(_pin_cs, 1);
+
+  return 0;
 }

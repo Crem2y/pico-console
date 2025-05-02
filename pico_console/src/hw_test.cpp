@@ -9,7 +9,6 @@
 
 // pico libraries
 #include "pico/stdlib.h"
-//#include "pico/util/queue.h"
 #include "pico/multicore.h"
 
 // headers
@@ -17,7 +16,7 @@
 #include "hw_test.hpp"
 #include "raspberry_logo.h"
 
-// hw libraries
+// drivers
 #include "LED_STATUS.hpp"
 #include "MCP4725.hpp"
 #include "PCA9554.hpp"
@@ -25,21 +24,11 @@
 #include "IR_REMOTE.hpp"
 #include "SD_SPI.hpp"
 #include "LI_BATTERY.hpp"
+
+// middlewears
 #include "USB_SW.hpp"
 #include "PICO_W_BT.hpp"
 #include "PICO_W_WIFI.hpp"
-
-/*
-// multicore queue
-typedef struct
-{
-    int32_t (*func)(int32_t);
-    int32_t data;
-} queue_entry_t;
-
-queue_t call_queue;
-queue_t results_queue;
-*/
 
 // hw lib init
 LED_STATUS Led = LED_STATUS(8,9,10,11);
@@ -73,7 +62,89 @@ const uint32_t Music_Test[] = {
   ME(OP_DELAY4, 0, 0, 0, 0, 0), ME(OP_STOP, 0, 0, 0, 0, 0)
 };
 
+void core1_entry();
+
 //////// function ////////
+
+int main() { // uses core 0 to sub core
+  stdio_init_all();
+  built_in_led_init();
+
+  sleep_ms(100);
+  built_in_led_on();
+
+  multicore_launch_core1(core1_entry);
+  setlocale(LC_ALL,"");
+
+  // initalizing hardwares
+  Led.init();
+  wprintf(L"LED ok\n");
+  Lcd.begin();
+  Lcd.fillScreen(0x0000);
+  Lcd.drawBitmap(128, 60, raspberry64x80, 64, 80, 0xFFFF, 0x0000);
+  Lcd.set_bright(500);
+  Lcd.setCursor(90,180);
+  Lcd.setTextColor(0xFFFF, 0x0000);
+  Lcd.setTextSize(2);
+  Lcd.print_5x8("PICO CONSOLE");
+  Lcd.setCursor(80,20);
+  Lcd.print_16(L"한글 폰트 : Neo둥근모");
+  wprintf(L"LCD ok\n");
+  Dac.init();
+  wprintf(L"DAC ok\n");
+  Key.init();
+  wprintf(L"KEY ok\n");
+  Bat.init();
+  wprintf(L"BAT ok\n");
+  Ir.init();
+  wprintf(L"IR ok\n");
+  Sdcard.init();
+  wprintf(L"SD card ok\n");
+  Swusb.init();
+  wprintf(L"SW USB ok\n");
+  wprintf(L"all HWs ok!\n");
+  wprintf(L"core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
+  // hardware initalized
+
+  // boot sequence start
+  Lcd.setTextSize(1);
+  Lcd.setCursor(128,200);
+  Lcd.print_5x8("press START");
+  Lcd.setCursor(64,210);
+  Lcd.print_5x8("press SELECT+START to quiet boot");
+  Key.wait_until(KEY_START, true);
+
+  wprintf(L"code check..\n");
+  for(int i=0; i<10; i++) {
+    //printf("%d %d...\n", Key.key_log[i+2], conami_code[9-i]);
+    if(Key.key_log[i+1] != conami_code[9-i]) break;
+    if(i == 9) {
+      wprintf(L"code activated!\n");
+      Dac.set_waning(32);
+      Dac.play_music_ex(Music_Test, 10, 100);
+    }
+  }
+
+  wprintf(L"go to main loop\n");
+  multicore_fifo_push_blocking(1);
+
+  sleep_ms(100);
+  Key.get_btn_data();
+  if(~Key.key_pressed & (1 << KEY_SELECT)) {
+    Dac.set_waning(32);
+    Dac.play_music_ex(Music_Boot_ex, 10, 100);
+  }
+  Dac.set_mute(true);
+  // boot sequence end
+  
+  while (true) {
+    sleep_ms(10);
+    Key.get_btn_data();
+    Bat.get_level();
+  }
+
+  return 0;
+}
 
 void core1_entry() { // uses core 1 to main core
   
@@ -189,86 +260,6 @@ main_menu_loop:
       }
     }
   }
-}
-
-int main() { // uses core 0 to sub core
-  stdio_init_all();
-  built_in_led_init();
-
-  sleep_ms(100);
-  built_in_led_on();
-
-  multicore_launch_core1(core1_entry);
-  setlocale(LC_ALL,"");
-
-  // initalizing hardwares
-  Led.init();
-  wprintf(L"LED ok\n");
-  Lcd.begin();
-  Lcd.fillScreen(0x0000);
-  Lcd.drawBitmap(128, 60, raspberry64x80, 64, 80, 0xFFFF, 0x0000);
-  Lcd.set_bright(500);
-  Lcd.setCursor(90,180);
-  Lcd.setTextColor(0xFFFF, 0x0000);
-  Lcd.setTextSize(2);
-  Lcd.print_5x8("PICO CONSOLE");
-  Lcd.setCursor(80,20);
-  Lcd.print_16(L"한글 폰트 : Neo둥근모");
-  wprintf(L"LCD ok\n");
-  Dac.init();
-  wprintf(L"DAC ok\n");
-  Key.init();
-  wprintf(L"KEY ok\n");
-  Bat.init();
-  wprintf(L"BAT ok\n");
-  Ir.init();
-  wprintf(L"IR ok\n");
-  Sdcard.init();
-  wprintf(L"SD card ok\n");
-  Swusb.init();
-  wprintf(L"SW USB ok\n");
-  wprintf(L"all HWs ok!\n");
-  wprintf(L"core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
-  // hardware initalized
-
-  // boot sequence start
-  Lcd.setTextSize(1);
-  Lcd.setCursor(128,200);
-  Lcd.print_5x8("press START");
-  Lcd.setCursor(64,210);
-  Lcd.print_5x8("press SELECT+START to quiet boot");
-  Key.wait_until(KEY_START, true);
-
-  wprintf(L"code check..\n");
-  for(int i=0; i<10; i++) {
-    //printf("%d %d...\n", Key.key_log[i+2], conami_code[9-i]);
-    if(Key.key_log[i+1] != conami_code[9-i]) break;
-    if(i == 9) {
-      wprintf(L"code activated!\n");
-      Dac.set_waning(32);
-      Dac.play_music_ex(Music_Test, 10, 100);
-    }
-  }
-
-  wprintf(L"go to main loop\n");
-  multicore_fifo_push_blocking(1);
-
-  sleep_ms(100);
-  Key.get_btn_data();
-  if(~Key.key_pressed & (1 << KEY_SELECT)) {
-    Dac.set_waning(32);
-    Dac.play_music_ex(Music_Boot_ex, 10, 100);
-  }
-  Dac.set_mute(true);
-  // boot sequence end
-  
-  while (true) {
-    sleep_ms(10);
-    Key.get_btn_data();
-    Bat.get_level();
-  }
-
-  return 0;
 }
 
 //////// test menus ////////
@@ -610,49 +601,46 @@ void menu_sd_test(void) {
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
   Lcd.print_5x8("SD card test");
-/*
+
   sleep_ms(100);
   char string_buf[32];
   sprintf(string_buf, "SD card : %s", Sdcard.card_check() ? "inserted    " : "not inserted");
   Lcd.setCursor(0,16);
   Lcd.print_5x8(string_buf);
 
-  Sdcard.card_init();
+  int ret = Sdcard.card_init();
 
+  sprintf(string_buf, "inited : %s", Sdcard.info.is_inited ? "yes" : "error");
   Lcd.setCursor(0,32);
-  Lcd.print_5x8("SD card type : ");
-
-  switch (Sdcard.card_type)
-  {
-  case VER1X:
-    Lcd.print_5x8("V1.x");
-    break;
-  case VER2X:
-    Lcd.print_5x8("V2.x");
-    break;
-  case VER2X_SC:
-    Lcd.print_5x8("V2.x SC");
-    break;
-  case VER2X_HC:
-    Lcd.print_5x8("V2.x SDHC");
-    break;
-  default:
-    Lcd.print_5x8("UNKNOWN");
-    break;
-  }
-
-  sprintf(string_buf, "inited : %s", Sdcard.is_inited ? "yes" : "not yet");
-  Lcd.setCursor(0,48);
   Lcd.print_5x8(string_buf);
 
-  if(Sdcard.is_inited) {
-    Sdcard.FAT32_init();
+  if(!Sdcard.info.is_inited) {
+    sprintf(string_buf, "(%d)", ret);
+    Lcd.print_5x8(string_buf);
+
+  } else {
+    Lcd.setCursor(0,48);
+    Lcd.print_5x8("SD card type : ");
+  
+    switch (Sdcard.info.type)
+    {
+    case SD_TYPE_SDSC:
+      Lcd.print_5x8("SD");
+      break;
+    case SD_TYPE_SDHC:
+      Lcd.print_5x8("SDHC");
+      break;
+    default:
+      Lcd.print_5x8("UNKNOWN");
+      break;
+    }
+
+    Lcd.setCursor(0,64);
+    Lcd.print_5x8("size : ");
+    sprintf(string_buf, "%llu B", (Sdcard.info.size));
+    Lcd.print_5x8(string_buf);
   }
 
-  sprintf(string_buf, "FAT32 : %s", Sdcard.Fat32Enabled ? "yes" : "no");
-  Lcd.setCursor(0,64);
-  Lcd.print_5x8(string_buf);
-*/
   while(1) {
     sleep_ms(100);
 
