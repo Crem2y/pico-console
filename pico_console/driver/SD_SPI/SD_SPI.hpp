@@ -63,6 +63,7 @@ enum _sd_response_t {
 typedef struct _sd_info
 {
   bool is_inited;
+  uint8_t version;
   enum _sd_type_t type;
   uint32_t block_len;
   uint64_t size;
