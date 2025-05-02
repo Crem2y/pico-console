@@ -521,8 +521,8 @@ void Adafruit_GFX::drawChar_E_16(int16_t x, int16_t y, wchar_t C,
      (y < 0))   // Clip top
     return;
 
-  u_int8_t data, temp_x, temp_y;
-  u_int8_t code = (u_int8_t)C;
+  uint8_t data, temp_x, temp_y;
+  uint8_t code = (uint8_t)C;
 
   for(temp_x = 0; temp_x < 8; temp_x++) {
     data = font_16_E[code][temp_x];
@@ -550,8 +550,8 @@ void Adafruit_GFX::drawChar_K_16(int16_t x, int16_t y, wchar_t C,
      (y < 0))   // Clip top
     return;
 
-  u_int32_t cho, jung, jong;
-  u_int16_t value = C - 0xAC00;
+  uint32_t cho, jung, jong;
+  uint16_t value = C - 0xAC00;
 
   jong = value % 28;
   jung = ((value - jong) / 28) % 21;
@@ -561,10 +561,10 @@ void Adafruit_GFX::drawChar_K_16(int16_t x, int16_t y, wchar_t C,
     jong = 0;
   }
 
-  u_int32_t cho_5bit, joong_5bit, jong_5bit;
-  u_int32_t cho_bul, joong_bul, jong_bul = 0, i, jong_flag;
-  u_int16_t ch;
-  u_int8_t Kbuffer[32] = {0};		// 32 byte Korean font buffer
+  uint32_t cho_5bit, joong_5bit, jong_5bit;
+  uint32_t cho_bul, joong_bul, jong_bul = 0, i, jong_flag;
+  uint16_t ch;
+  uint8_t Kbuffer[32] = {0};		// 32 byte Korean font buffer
 
   cho_5bit   = cho+1;  // get 5bit(14-10) of chosung
   joong_5bit = jung+1; // get 5bit(09-05) of joongsung
@@ -602,7 +602,7 @@ void Adafruit_GFX::drawChar_K_16(int16_t x, int16_t y, wchar_t C,
       for(i = 0; i < 32; i++) Kbuffer[i] |= font_16_K[ch][i];
     }
 
-  u_int8_t data, temp_x, temp_y;
+  uint8_t data, temp_x, temp_y;
 
   for(temp_x = 0; temp_x < 16; temp_x++) {
     data = Kbuffer[temp_x];

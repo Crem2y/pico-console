@@ -610,7 +610,7 @@ void menu_sd_test(void) {
   Lcd.setTextSize(2);
   Lcd.setCursor(0,0);
   Lcd.print_5x8("SD card test");
-
+/*
   sleep_ms(100);
   char string_buf[32];
   sprintf(string_buf, "SD card : %s", Sdcard.card_check() ? "inserted    " : "not inserted");
@@ -652,7 +652,7 @@ void menu_sd_test(void) {
   sprintf(string_buf, "FAT32 : %s", Sdcard.Fat32Enabled ? "yes" : "no");
   Lcd.setCursor(0,64);
   Lcd.print_5x8(string_buf);
-
+*/
   while(1) {
     sleep_ms(100);
 
