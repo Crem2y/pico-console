@@ -14,6 +14,28 @@ Designed for learning and experimenting with embedded systems.
 
 All hardware control and software stack are implemented from scratch without any OS or external frameworks.
 
+## How to build
+
+1. Install CMake (at least version 3.13), Python 3, a native compiler, and a GCC cross compiler
+```
+sudo apt install cmake python3 build-essential gcc-arm-none-eabi libnewlib-arm-none-eabi libstdc++-arm-none-eabi-newlib
+```
+2. Update submodules:
+```
+git submodule init
+git submodule update
+```
+3. Launch the build script:
+```
+./pico_build.sh
+```
+4. Upload `.uf2` file to your board.
+
+5. (Optional) Launch the clean script to remove build artifacts:
+```
+./pico_clean.sh
+```
+
 ## Photos
 
 Back of the console
