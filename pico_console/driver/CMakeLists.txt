@@ -1,4 +1,4 @@
-message(STATUS "building libs...")
+message(STATUS "building drivers...")
 
 add_subdirectory(LED_STATUS)
 add_subdirectory(MCP4725)
@@ -55,4 +55,4 @@ target_link_libraries(${PROJECT_NAME}
   PICO_W_WIFI
 )
 
-message(STATUS "building libs completed!")
+message(STATUS "building drivers completed!")
