@@ -609,6 +609,9 @@ void menu_sd_test(void) {
   Lcd.print_5x8(string_buf);
 
   int ret = Sdcard.card_init();
+  if(ret < 0) {
+    Sdcard.card_deinit();
+  }
 
   sprintf(string_buf, "inited : %s", Sdcard.info.is_inited ? "yes" : "error");
   Lcd.setCursor(0,32);

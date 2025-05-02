@@ -59,9 +59,17 @@ int SD_SPI::card_init(void) {
   write_buf[1] = 0x00;
   write_buf[2] = 0x01;
   write_buf[3] = 0xAA;
-  if(send_cmd(SD_CMD8, write_buf, read_buf, false) < 0) {
-    wprintf(L"CMD8 timeout\n");
-    return -8;
+  if (send_cmd(SD_CMD8, write_buf, read_buf, false) == 0) {
+    if ((read_buf[0] & 0x04) == 0 && read_buf[4] == 0xAA) {
+      this->info.version = 0x20;
+      wprintf(L"SD v2.x detected\n");
+    } else {
+      this->info.version = 0x10;
+      wprintf(L"CMD8 response mismatch, assuming SDSC\n");
+    }
+  } else {
+    this->info.version = 0x10;
+    wprintf(L"CMD8 no response, assuming SDSC\n");
   }
 
   // ACMD41 loop
@@ -73,7 +81,11 @@ int SD_SPI::card_init(void) {
     }
 
     // send ACMD41
-    write_buf[0] = 0x40;
+    if(this->info.version >= 0x20) {
+      write_buf[0] = 0x40;
+    } else {
+      write_buf[0] = 0x00;
+    }
     write_buf[1] = 0x00;
     write_buf[2] = 0x00;
     write_buf[3] = 0x00;
@@ -142,9 +154,8 @@ int SD_SPI::card_init(void) {
 }
 
 int SD_SPI::card_deinit(void) {
-  if(!card_check()){
-    return -1;
-  }
+  gpio_put(_pin_cs, 1);
+  spi_init(SD_SPI_CH, 25 * 1000000);
 
   this->info.is_inited = false;
   this->info.type == SD_TYPE_UNKNOWN;
