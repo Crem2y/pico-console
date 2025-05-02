@@ -14,7 +14,7 @@ Designed for learning and experimenting with embedded systems.
 
 All hardware control and software stack are implemented from scratch without any OS or external frameworks.
 
-## How to build
+## How to build & upload firmware
 
 1. Install CMake (at least version 3.13), Python 3, a native compiler, and a GCC cross compiler
 ```
@@ -29,9 +29,11 @@ git submodule update
 ```
 ./pico_build.sh
 ```
-4. Upload `.uf2` file to your board.
+4. Press the reset button twice to enter bootloader mode.
 
-5. (Optional) Launch the clean script to remove build artifacts:
+5. Upload the generated `.uf2` file to your board.
+
+6. (Optional) Launch the clean script to remove build artifacts:
 ```
 ./pico_clean.sh
 ```

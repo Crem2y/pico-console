@@ -44,6 +44,7 @@ pico_add_extra_outputs(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
   pico_stdlib
   pico_multicore
+  pico_bootsel_via_double_reset # Double tap reset into bootrom
   pico_cyw43_arch_none # for pico W board
 )
 
