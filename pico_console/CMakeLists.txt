@@ -37,7 +37,8 @@ include_directories(
 #add_executable(${PROJECT_NAME} src/main.cpp)
 add_executable(${PROJECT_NAME} src/hw_test.cpp)
 
-add_subdirectory(lib)
+add_subdirectory(driver)
+add_subdirectory(middlewear)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
