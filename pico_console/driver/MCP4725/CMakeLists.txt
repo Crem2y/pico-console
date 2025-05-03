@@ -4,11 +4,13 @@ message(STATUS "building lib \"${LIB_NAME}\"...")
 
 set(OUTPUT_STATIC_LIB ${LIB_NAME})
 
+add_library(Sound_system Sound_system.cpp)
 add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.cpp)
 
 target_link_libraries(${OUTPUT_STATIC_LIB}
   pico_stdlib
   hardware_i2c
+  Sound_system
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")

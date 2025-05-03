@@ -1,5 +1,6 @@
 #include "MCP4725.hpp"
 #include "Sound_Freq.h"
+#include "Sound_Waves.h"
 
 volatile dac_set_t dac_ch[DAC_CH_MAX] = {
   {0, 0, 0, 0, DAC_wave_none},
