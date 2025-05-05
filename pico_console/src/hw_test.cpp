@@ -628,10 +628,14 @@ void menu_sd_test(void) {
     switch (Sdcard.info.type)
     {
     case SD_TYPE_SDSC:
-      Lcd.print_5x8("SD");
+      Lcd.print_5x8("SDSC");
       break;
     case SD_TYPE_SDHC:
-      Lcd.print_5x8("SDHC");
+      if(Sdcard.info.size > 34359738368) {
+        Lcd.print_5x8("SDXC");
+      } else {
+        Lcd.print_5x8("SDHC");
+      }
       break;
     default:
       Lcd.print_5x8("UNKNOWN");
@@ -642,6 +646,30 @@ void menu_sd_test(void) {
     Lcd.print_5x8("size : ");
     sprintf(string_buf, "%llu B", (Sdcard.info.size));
     Lcd.print_5x8(string_buf);
+
+    int ret;
+    uint8_t buf[512] = {0,};
+    ret = Sdcard.sector_read(0, buf);
+    if(ret < 0) {
+      wprintf(L"sector_read error(%d)\n", ret);
+    }
+    wprintf(L"SD SECTOR[0] : ");
+    for(int i=0; i<512; i++)
+    {
+      wprintf(L"%02X ", buf[i]);
+    }
+    wprintf(L"\n");
+
+    ret = Sdcard.sector_read(1, buf);
+    if(ret < 0) {
+      wprintf(L"sector_read error(%d)\n", ret);
+    }
+    wprintf(L"SD SECTOR[1] : ");
+    for(int i=0; i<512; i++)
+    {
+      wprintf(L"%02X ", buf[i]);
+    }
+    wprintf(L"\n");
   }
 
   while(1) {
