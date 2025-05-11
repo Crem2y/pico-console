@@ -394,6 +394,8 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
     } while (busy == 0x00);
   
     gpio_put(_pin_cs, 1);
+    dummy = 0xFF;
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
   } else {
     return -1;
   }
