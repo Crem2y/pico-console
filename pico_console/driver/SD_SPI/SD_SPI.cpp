@@ -299,8 +299,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
 
   if (!keep_cs_low) {
     uint8_t dummy = 0xFF;
-    uint8_t flush;
-    spi_write_read_blocking(SD_SPI_CH, &dummy, &flush, 1); // flush
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
     gpio_put(_pin_cs, 1);
   }
 
@@ -335,6 +334,8 @@ int SD_SPI::sector_read(size_t sector_num, void* buf) {
     sleep_us(50);
     res = read_data_block((uint8_t*)buf, 512);
     gpio_put(_pin_cs, 1);
+    uint8_t dummy = 0xFF;
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
   } else {
     return -1;
   }
