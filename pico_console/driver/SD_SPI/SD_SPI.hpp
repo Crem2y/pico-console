@@ -16,7 +16,7 @@
 #include "hardware/spi.h"
 
 #define SD_SPI_SLOW 400*1000
-#define SD_SPI_FAST 5*1000*1000
+#define SD_SPI_FAST 10*1000*1000
 
 #define SD_SPI_CH spi0
 
