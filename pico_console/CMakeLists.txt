@@ -25,9 +25,9 @@ project(${PROJ_NAME}
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-pico_sdk_init()
+add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz
 
-set(SYS_CLK_MHZ 200) # set clock to 200MHz
+pico_sdk_init()
 
 include_directories(
     ./include
@@ -38,7 +38,7 @@ include_directories(
 add_executable(${PROJECT_NAME} src/hw_test.cpp)
 
 add_subdirectory(driver)
-add_subdirectory(middlewear)
+add_subdirectory(middleware)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
@@ -49,7 +49,7 @@ target_link_libraries(${PROJECT_NAME}
   pico_cyw43_arch_none # for pico W board
 )
 
-pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 0)
+pico_enable_stdio_usb(${PROJECT_NAME} 0)
+pico_enable_stdio_uart(${PROJECT_NAME} 1)
 
 message(STATUS "building project \"${PROJ_NAME}\" completed!")
