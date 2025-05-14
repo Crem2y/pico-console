@@ -24,7 +24,7 @@ void LED_STATUS::init(void) {
 
 void LED_STATUS::set_bright(uint32_t num, uint32_t bright) {
   led_bright[num-1] = LED_PWM_MAX - bright;
-  pwm_set_chan_level(slice_num[num-1], led_pwm_ch[num-1], bright);
+  pwm_set_chan_level(slice_num[num-1], led_pwm_ch[num-1], 1000-bright);
 }
 
 void LED_STATUS::set_bright_float(uint32_t num, float bright) {

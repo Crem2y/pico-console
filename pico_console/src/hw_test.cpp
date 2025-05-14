@@ -87,8 +87,6 @@ int main() { // uses core 0 to sub core
   Lcd.setTextColor(0xFFFF, 0x0000);
   Lcd.setTextSize(2);
   Lcd.print_5x8("PICO CONSOLE");
-  Lcd.setCursor(80,20);
-  Lcd.print_16(L"한글 폰트 : Neo둥근모");
   wprintf(L"LCD ok\n");
   Dac.init();
   wprintf(L"DAC ok\n");
@@ -463,6 +461,14 @@ void menu_led_test(void) {
       Led.set_bright_float(3, b);
       Led.set_bright_float(4, b);
       sleep_ms(10);
+
+      if(Key.key_flags.select && Key.key_flags.start) {
+        Led.set_bright(1, 0);
+        Led.set_bright(2, 0);
+        Led.set_bright(3, 0);
+        Led.set_bright(4, 0);
+        return;
+      }
     }
     for(int i=0; i<100; i++) {
       float b = (float)(99-i)/100;
@@ -471,11 +477,14 @@ void menu_led_test(void) {
       Led.set_bright_float(3, b);
       Led.set_bright_float(4, b);
       sleep_ms(10);
-    }
-    
 
-    if(Key.key_flags.select && Key.key_flags.start) {
-      return;
+      if(Key.key_flags.select && Key.key_flags.start) {
+        Led.set_bright(1, 0);
+        Led.set_bright(2, 0);
+        Led.set_bright(3, 0);
+        Led.set_bright(4, 0);
+        return;
+      }
     }
   }
 }
