@@ -9,7 +9,7 @@ Designed for learning and experimenting with embedded systems.
 - Graphics: 240x320 16-bit LCD (SPI)
 - Audio: 4-channel soft mixing (DAC)
 - Input: 24 buttons (uses I2C GPIO expander)
-- Storage: SPI SD card
+- Storage: micro SD card (SPI interface, SDSC, SDHC, SDXC support)
 - Other: Battery monitoring, IR (NEC only)
 
 All hardware control and software stack are implemented from scratch without any OS or external frameworks.
