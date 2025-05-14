@@ -22,8 +22,11 @@ sudo apt install cmake python3 build-essential gcc-arm-none-eabi libnewlib-arm-n
 ```
 2. Update submodules:
 ```
-git submodule init
-git submodule update
+$ git submodule init
+$ git submodule update
+$ cd pico-sdk
+pico-sdk$ git submodule init
+pico-sdk$ git submodule update
 ```
 3. Launch the build script:
 ```
