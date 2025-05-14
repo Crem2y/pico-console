@@ -4,6 +4,7 @@ set(PICO_CYW43_SUPPORTED 1)
 
 cmake_minimum_required(VERSION 3.13)
 
+set(CMAKE_SIZE arm-none-eabi-size)
 set(PICO_SDK_PATH ../../pico-sdk)
 include(pico_sdk_import.cmake)
 
@@ -36,6 +37,11 @@ include_directories(
 # add_executable(${PROJECT_NAME} [src1.c] [src2.c] [src3.c] ...)
 #add_executable(${PROJECT_NAME} src/main.cpp)
 add_executable(${PROJECT_NAME} src/hw_test.cpp)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_SIZE} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
+    COMMENT "RAM/Flash Usage : "
+)
 
 add_subdirectory(driver)
 add_subdirectory(middleware)
