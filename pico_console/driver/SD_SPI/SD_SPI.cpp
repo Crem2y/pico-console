@@ -112,8 +112,10 @@ int SD_SPI::card_init(void) {
 
   if(read_buf[1] & 0x40) {
     this->info.type = SD_TYPE_SDHC;
+    wprintf(L"SDHC/SDXC card detected\n");
   } else {
     this->info.type = SD_TYPE_SDSC;
+    wprintf(L"SDSC card detected\n");
   }
 
   // send CMD9
@@ -315,7 +317,26 @@ int SD_SPI::sector_read(size_t sector_num, void* buf) {
   spi_init(SD_SPI_CH, SD_SPI_FAST);
 
   if(this->info.type == SD_TYPE_SDSC) {
-    // todo
+    uint8_t write_buf[4];
+    uint8_t read_buf[5];
+
+    uint32_t addr = sector_num * 512;
+    write_buf[0] = (addr >> 24) & 0xFF;
+    write_buf[1] = (addr >> 16) & 0xFF;
+    write_buf[2] = (addr >> 8) & 0xFF;
+    write_buf[3] = addr & 0xFF;
+
+    if (send_cmd(SD_CMD17, write_buf, read_buf, true) < 0 || read_buf[0] != 0x00) {
+      wprintf(L"CMD17 (SDSC) error: 0x%02X\n", read_buf[0]);
+      gpio_put(_pin_cs, 1);
+      return -17; 
+    }
+
+    sleep_us(50);
+    res = read_data_block((uint8_t*)buf, 512);
+    gpio_put(_pin_cs, 1);
+    uint8_t dummy = 0xFF;
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
   } else if(this->info.type == SD_TYPE_SDHC) {
     uint8_t write_buf[4];
     uint8_t read_buf[5];
@@ -350,7 +371,43 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
   spi_init(SD_SPI_CH, SD_SPI_FAST);
 
   if(this->info.type == SD_TYPE_SDSC) {
-    // todo
+    uint8_t write_buf[4];
+    uint8_t read_buf[5];
+    uint8_t dummy = 0xFF;
+
+    uint32_t addr = sector_num * 512;
+    write_buf[0] = (addr >> 24) & 0xFF;
+    write_buf[1] = (addr >> 16) & 0xFF;
+    write_buf[2] = (addr >> 8) & 0xFF;
+    write_buf[3] = addr & 0xFF;
+
+    if (send_cmd(SD_CMD24, write_buf, read_buf, true) < 0 || read_buf[0] != 0x00)
+      return -24;
+
+    gpio_put(_pin_cs, 0);
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // Nwr
+
+    uint8_t token = 0xFE;
+    spi_write_blocking(SD_SPI_CH, &token, 1);
+    spi_write_blocking(SD_SPI_CH, (uint8_t*)buf, 512);
+
+    uint8_t crc[2] = {0xFF, 0xFF};
+    spi_write_blocking(SD_SPI_CH, crc, 2);
+
+    uint8_t resp;
+    spi_write_read_blocking(SD_SPI_CH, &dummy, &resp, 1);
+    if ((resp & 0x1F) != 0x05) {
+      gpio_put(_pin_cs, 1);
+      return -25;
+    }
+
+    uint8_t busy;
+    do {
+      spi_write_read_blocking(SD_SPI_CH, &dummy, &busy, 1);
+    } while (busy == 0x00);
+
+    gpio_put(_pin_cs, 1);
+    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
   } else if(this->info.type == SD_TYPE_SDHC) {
     uint8_t write_buf[4];
     uint8_t read_buf[5];
