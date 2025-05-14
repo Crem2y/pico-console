@@ -35,7 +35,7 @@ LED_STATUS Led = LED_STATUS(8,9,10,11);
 MCP4725 Dac = MCP4725(5,4);
 TM022HDH26 Lcd = TM022HDH26(13,14,15,12);
 PCA9554 Key = PCA9554(3,2);
-LI_BATTERY Bat = LI_BATTERY(28, (1/2));
+LI_BATTERY Bat = LI_BATTERY(28, ((double)1/2));
 IR_REMOTE Ir = IR_REMOTE(21);
 SD_SPI Sdcard = SD_SPI(17,20);
 USB_SW Swusb = USB_SW(6,7);
@@ -644,7 +644,7 @@ void menu_sd_test(void) {
 
     Lcd.setCursor(0,64);
     Lcd.print_5x8("size : ");
-    sprintf(string_buf, "%llu B", (Sdcard.info.size));
+    sprintf(string_buf, "%llu MB", (Sdcard.info.size / 1000000));
     Lcd.print_5x8(string_buf);
 
     int ret;
@@ -659,35 +659,6 @@ void menu_sd_test(void) {
       wprintf(L"%02X ", buf[i]);
     }
     wprintf(L"\n");
-
-    ret = Sdcard.sector_read(1, buf);
-    if(ret < 0) {
-      wprintf(L"sector_read error(%d)\n", ret);
-    }
-    wprintf(L"SD SECTOR[1] : ");
-    for(int i=0; i<512; i++)
-    {
-      wprintf(L"%02X ", buf[i]);
-    }
-    wprintf(L"\n");
-
-
-    for(int i=0; i<512; i++)
-    {
-      buf[i] = (i & 0xFF);
-    }
-
-    ret = Sdcard.sector_write(1, buf);
-    if(ret < 0) {
-      wprintf(L"sector_write error(%d)\n", ret);
-    }
-    wprintf(L"SD SECTOR[1] : ");
-    for(int i=0; i<512; i++)
-    {
-      wprintf(L"%02X ", buf[i]);
-    }
-    wprintf(L"\n");
-
 
     ret = Sdcard.sector_read(1, buf);
     if(ret < 0) {

@@ -14,13 +14,13 @@ void LI_BATTERY::init(void) {
 
 double LI_BATTERY::get_voltage(void) {
   adc_select_input(BAT_ADC_CH);
-  uint16_t adc_raw;
+  uint16_t adc_raw = 0;
   
   for(int i=0; i<16; i++) {
     adc_raw += adc_read();
   }
 
-  voltage = (double)adc_raw * (3.3/65536) / _res_ratio;
+  voltage = ((double)adc_raw * (3.3/65536)) / _res_ratio;
   return voltage;
 }
 
