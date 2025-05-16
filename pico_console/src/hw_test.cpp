@@ -29,10 +29,12 @@
 #include "pico_w_wifi.hpp"
 
 // middlewares
+#include "sound_system.hpp"
 
 // hw lib init
 ledStatus Led = ledStatus(8,9,10,11);
 mcp4725 Dac = mcp4725(5,4);
+soundSystem Sound = soundSystem();
 tm022hdh26 Lcd = tm022hdh26(13,14,15,12);
 pca9554 Key = pca9554(3,2);
 liBattery Bat = liBattery(28, ((double)1/2));
@@ -65,6 +67,17 @@ const uint32_t Music_Test[] = {
 void core1_entry();
 
 //////// function ////////
+void dac_output_wrapper(uint16_t l, uint16_t r) {
+    Dac.output(l, r);
+}
+
+void dac_mute_wrapper() {
+    Dac.mute();
+}
+
+void dac_unmute_wrapper() {
+    Dac.unmute();
+}
 
 int main() { // uses core 0 to sub core
   stdio_init_all();
@@ -90,6 +103,10 @@ int main() { // uses core 0 to sub core
   wprintf(L"LCD ok\n");
   Dac.init();
   wprintf(L"DAC ok\n");
+  Sound.init();
+  Sound.dac_output = dac_output_wrapper;
+  Sound.dac_mute = dac_mute_wrapper;
+  Sound.dac_unmute = dac_unmute_wrapper;
   Key.init();
   wprintf(L"KEY ok\n");
   Bat.init();
@@ -118,8 +135,8 @@ int main() { // uses core 0 to sub core
     if(Key.key_log[i+1] != conami_code[9-i]) break;
     if(i == 9) {
       wprintf(L"code activated!\n");
-      Dac.set_waning(32);
-      Dac.play_music_ex(Music_Test, 10, 100);
+      Sound.set_waning(32);
+      Sound.play_music_ex(Music_Test, 10, 100);
     }
   }
 
@@ -129,10 +146,10 @@ int main() { // uses core 0 to sub core
   sleep_ms(100);
   Key.get_btn_data();
   if(~Key.key_pressed & (1 << KEY_SELECT)) {
-    Dac.set_waning(32);
-    Dac.play_music_ex(Music_Boot_ex, 10, 100);
+    Sound.set_waning(32);
+    Sound.play_music_ex(Music_Boot_ex, 10, 100);
   }
-  Dac.set_mute(true);
+  Sound.set_mute(true);
   // boot sequence end
   
   while (true) {
@@ -521,8 +538,8 @@ void menu_dac_test(void) {
     sleep_ms(100);
     
     if(Key.key_flags.a) {
-      Dac.play_music_ex(Music_Test, 10, 100);
-      Dac.set_mute(true);
+      Sound.play_music_ex(Music_Test, 10, 100);
+      Sound.set_mute(true);
     }
 
     if(Key.key_flags.select && Key.key_flags.start) {
