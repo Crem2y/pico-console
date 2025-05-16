@@ -1,6 +1,6 @@
 // PICO W WIFI lib
 
-#include "PICO_W_WIFI.hpp"
+#include "pico_w_wifi.hpp"
 
 static int scan_result(void *env, const cyw43_ev_scan_result_t *result) {
 

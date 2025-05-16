@@ -1,29 +1,29 @@
 message(STATUS "building drivers...")
 
-add_subdirectory(LED_STATUS)
-add_subdirectory(MCP4725)
-add_subdirectory(PCA9554)
-add_subdirectory(TM022HDH26)
-add_subdirectory(SD_SPI)
-add_subdirectory(IR_REMOTE)
-add_subdirectory(LI_BATTERY)
-add_subdirectory(PICO_W_WIFI)
-add_subdirectory(PICO_W_BT)
-add_subdirectory(USB_SW)
+add_subdirectory(led_status)
+add_subdirectory(li_battery)
+add_subdirectory(ir_remote)
+add_subdirectory(mcp4725)
+add_subdirectory(pca9554)
+add_subdirectory(tm022hdh26)
+add_subdirectory(sd_spi)
+add_subdirectory(pico_w_wifi)
+add_subdirectory(pico_w_bt)
+add_subdirectory(usb_sw)
 
 add_library(driver INTERFACE)
 
 target_link_libraries(driver INTERFACE
-  LED_STATUS
-  MCP4725
-  PCA9554
-  TM022HDH26
-  LI_BATTERY
-  SD_SPI
-  IR_REMOTE
-  PICO_W_WIFI
-  PICO_W_BT
-  USB_SW
+  led_status
+  li_battery
+  ir_remote
+  mcp4725
+  pca9554
+  tm022hdh26
+  sd_spi
+  pico_w_wifi
+  pico_w_bt
+  usb_sw
 )
 
 message(STATUS "building drivers completed!")

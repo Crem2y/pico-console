@@ -1,6 +1,6 @@
 // IR remote controller lib
 
-#include "IR_REMOTE.hpp"
+#include "ir_remote.hpp"
 
 IR_REMOTE::IR_REMOTE(int ir_pin) {
   _ir_pin = ir_pin;

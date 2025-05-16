@@ -2,7 +2,7 @@
 // original source
 // https://github.com/sekigon-gonnoc/Pico-PIO-USB
 
-#include "USB_SW.hpp"
+#include "usb_sw.hpp"
 
 USB_SW::USB_SW(int pin_dp, int pin_dn) {
   _pin_dp = pin_dp;

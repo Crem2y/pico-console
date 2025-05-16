@@ -1,6 +1,6 @@
 // Li battery checking lib
 
-#include "LI_BATTERY.hpp"
+#include "li_battery.hpp"
 
 LI_BATTERY::LI_BATTERY(int adc_pin, double res_ratio) {
   _adc_pin = adc_pin;

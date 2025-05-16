@@ -1,6 +1,6 @@
 // PICO W Bluetooth lib
 
-#include "PICO_W_BT.hpp"
+#include "pico_w_bt.hpp"
 
 PICO_W_BT::PICO_W_BT(void) {
 

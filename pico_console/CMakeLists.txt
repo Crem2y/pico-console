@@ -14,13 +14,12 @@ message(STATUS "building project \"${PROJ_NAME}\"...")
 
 # project([project_name] C CXX ASM)
 # output : [project_name].uf2
-project(${PROJ_NAME}
-  LANGUAGES
-    C
-    CXX
-    ASM
+project(${PROJ_NAME} LANGUAGES
+  C
+  CXX
+  ASM
   VERSION
-    1.0.0
+  1.0.0
 )
 
 set(CMAKE_C_STANDARD 11)
@@ -30,8 +29,11 @@ add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz
 
 pico_sdk_init()
 
+add_subdirectory(driver)
+add_subdirectory(middleware)
+
 include_directories(
-    ./include
+  ./include
 )
 
 # add_executable(${PROJECT_NAME} [src1.c] [src2.c] [src3.c] ...)
@@ -39,12 +41,9 @@ include_directories(
 add_executable(${PROJECT_NAME} src/hw_test.cpp)
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_SIZE} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
-    COMMENT "RAM/Flash Usage : "
+  COMMAND ${CMAKE_SIZE} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
+  COMMENT "RAM/Flash Usage : "
 )
-
-add_subdirectory(driver)
-add_subdirectory(middleware)
 
 pico_add_extra_outputs(${PROJECT_NAME})
 

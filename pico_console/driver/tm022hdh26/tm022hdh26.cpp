@@ -12,7 +12,7 @@
 // original source
 // https://github.com/shawnhyam/pico/blob/main/ili9341/ili9341.c
 
-#include "TM022HDH26.hpp"
+#include "tm022hdh26.hpp"
 
 static inline void cs_select(uint cs_pin) {
     asm volatile("nop \n nop");

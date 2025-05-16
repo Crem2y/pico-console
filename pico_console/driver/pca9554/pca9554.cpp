@@ -7,7 +7,7 @@
 #include <locale.h>
 
 #include "pico/stdlib.h"
-#include "PCA9554.hpp"
+#include "pca9554.hpp"
 
 PCA9554::PCA9554(int pin_scl, int pin_sda) {
   _pin_scl = pin_scl;

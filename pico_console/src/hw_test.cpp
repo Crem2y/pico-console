@@ -17,18 +17,18 @@
 #include "raspberry_logo.h"
 
 // drivers
-#include "LED_STATUS.hpp"
-#include "MCP4725.hpp"
-#include "PCA9554.hpp"
-#include "TM022HDH26.hpp"
-#include "IR_REMOTE.hpp"
-#include "SD_SPI.hpp"
-#include "LI_BATTERY.hpp"
+#include "led_status.hpp"
+#include "li_battery.hpp"
+#include "ir_remote.hpp"
+#include "mcp4725.hpp"
+#include "pca9554.hpp"
+#include "tm022hdh26.hpp"
+#include "sd_spi.hpp"
+#include "usb_sw.hpp"
+#include "pico_w_bt.hpp"
+#include "pico_w_wifi.hpp"
 
-// middlewears
-#include "USB_SW.hpp"
-#include "PICO_W_BT.hpp"
-#include "PICO_W_WIFI.hpp"
+// middlewares
 
 // hw lib init
 LED_STATUS Led = LED_STATUS(8,9,10,11);

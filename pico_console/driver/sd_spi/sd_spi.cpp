@@ -1,7 +1,7 @@
 
 // SD card (spi interface) lib
 
-#include "SD_SPI.hpp"
+#include "sd_spi.hpp"
 
 SD_SPI::SD_SPI(int pin_cs, int pin_cd) {
   this->_pin_cs = pin_cs;

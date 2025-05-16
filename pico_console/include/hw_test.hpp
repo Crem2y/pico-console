@@ -1,5 +1,4 @@
-#include "PCA9554.hpp"
-#include "PCA9554.hpp"
+#include "pca9554.hpp"
 
 uint8_t conami_code[10] = {
   KEY_S1_UP,

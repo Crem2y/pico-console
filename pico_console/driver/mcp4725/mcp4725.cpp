@@ -1,4 +1,4 @@
-#include "MCP4725.hpp"
+#include "mcp4725.hpp"
 #include "Sound_Freq.h"
 #include "Sound_Waves.h"
 

@@ -1,6 +1,6 @@
 // 4 leds lib
 
-#include "LED_STATUS.hpp"
+#include "led_status.hpp"
 
 LED_STATUS::LED_STATUS(int led_1, int led_2, int led_3, int led_4) {
   led_pin[0] = led_1;
