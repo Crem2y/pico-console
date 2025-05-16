@@ -410,14 +410,14 @@ void Adafruit_GFX::drawXBitmap(int16_t x, int16_t y,
   }
 }
 
-void Adafruit_GFX::print_5x8(char *s) {
+void Adafruit_GFX::print_5x8(const char *s) {
   while(*s) {
     write_5x8(*s);
     s++;
   }
 }
 
-size_t Adafruit_GFX::write_5x8(uint8_t c) {
+size_t Adafruit_GFX::write_5x8(const uint8_t c) {
   if (c == '\n') {
     cursor_y += textsize*8;
     cursor_x  = 0;
@@ -471,14 +471,14 @@ void Adafruit_GFX::drawChar_5x8(int16_t x, int16_t y, unsigned char c,
   }
 }
 
-void Adafruit_GFX::print_16(wchar_t *S) {
+void Adafruit_GFX::print_16(const wchar_t *S) {
   while(*S) {
     write_16(*S);
     S++;
   }
 }
 
-void Adafruit_GFX::print_16(char *s) {
+void Adafruit_GFX::print_16(const char *s) {
   while(*s) {
     wchar_t C = *s;
     write_16(C);
@@ -486,7 +486,7 @@ void Adafruit_GFX::print_16(char *s) {
   }
 }
 
-size_t Adafruit_GFX::write_16(wchar_t C) {
+size_t Adafruit_GFX::write_16(const wchar_t C) {
   if (C == '\n') {
     cursor_y += 16;
     cursor_x  = 0;
@@ -512,7 +512,7 @@ size_t Adafruit_GFX::write_16(wchar_t C) {
 }
 
 // Draw a character (8x16, english)
-void Adafruit_GFX::drawChar_E_16(int16_t x, int16_t y, wchar_t C,
+void Adafruit_GFX::drawChar_E_16(int16_t x, int16_t y, const wchar_t C,
 			    uint16_t color, uint16_t bg) {
 
   if((x >= _width)            || // Clip right
@@ -541,7 +541,7 @@ void Adafruit_GFX::drawChar_E_16(int16_t x, int16_t y, wchar_t C,
 }
 
 // Draw a character (16x16, korean)
-void Adafruit_GFX::drawChar_K_16(int16_t x, int16_t y, wchar_t C,
+void Adafruit_GFX::drawChar_K_16(int16_t x, int16_t y, const wchar_t C,
 			    uint16_t color, uint16_t bg) {
 
   if((x >= _width)            || // Clip right

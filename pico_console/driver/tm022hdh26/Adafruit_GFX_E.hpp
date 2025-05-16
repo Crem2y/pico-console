@@ -63,16 +63,16 @@ class Adafruit_GFX {
     setRotation(uint8_t r),
     cp437(bool x=true);
 
-  virtual void print_5x8(char *s);
-  virtual size_t write_5x8(uint8_t c);
+  virtual void print_5x8(const char *s);
+  virtual size_t write_5x8(const uint8_t c);
 
-  virtual void print_16(wchar_t *S);
-  virtual void print_16(char *s);
-  virtual size_t write_16(wchar_t C);
+  virtual void print_16(const wchar_t *S);
+  virtual void print_16(const char *s);
+  virtual size_t write_16(const wchar_t C);
 
-  void drawChar_E_16(int16_t x, int16_t y, wchar_t C, uint16_t color,
+  void drawChar_E_16(int16_t x, int16_t y, const wchar_t C, uint16_t color,
       uint16_t bg);
-  void drawChar_K_16(int16_t x, int16_t y, wchar_t C, uint16_t color,
+  void drawChar_K_16(int16_t x, int16_t y, const wchar_t C, uint16_t color,
       uint16_t bg);
 
   int16_t height(void) const;
