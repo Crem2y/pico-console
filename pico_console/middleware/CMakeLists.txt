@@ -4,21 +4,10 @@ add_subdirectory(USB_SW)
 add_subdirectory(PICO_W_BT)
 add_subdirectory(PICO_W_WIFI)
 
-target_include_directories(${PROJECT_NAME}
-  PRIVATE
-    USB_SW
-    PICO_W_BT
-    PICO_W_WIFI
-)
+add_library(middleware INTERFACE)
 
-target_link_directories(${PROJECT_NAME}
-  PRIVATE
-    USB_SW
-    PICO_W_BT
-    PICO_W_WIFI
-)
-
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(middleware INTERFACE
+  driver
   USB_SW
   PICO_W_BT
   PICO_W_WIFI

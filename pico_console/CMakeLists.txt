@@ -53,6 +53,8 @@ target_link_libraries(${PROJECT_NAME}
   pico_multicore
   pico_bootsel_via_double_reset # Double tap reset into bootrom
   pico_cyw43_arch_none # for pico W board
+  middleware
+  driver
 )
 
 pico_enable_stdio_usb(${PROJECT_NAME} 0)

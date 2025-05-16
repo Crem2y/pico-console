@@ -8,29 +8,9 @@ add_subdirectory(SD_SPI)
 add_subdirectory(IR_REMOTE)
 add_subdirectory(LI_BATTERY)
 
-target_include_directories(${PROJECT_NAME}
-  PRIVATE
-    LED_STATUS
-    MCP4725
-    PCA9554
-    TM022HDH26
-    LI_BATTERY
-    SD_SPI
-    IR_REMOTE
-)
+add_library(driver INTERFACE)
 
-target_link_directories(${PROJECT_NAME}
-  PRIVATE
-    LED_STATUS
-    MCP4725
-    PCA9554
-    TM022HDH26
-    LI_BATTERY
-    SD_SPI
-    IR_REMOTE
-)
-
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(driver INTERFACE
   LED_STATUS
   MCP4725
   PCA9554

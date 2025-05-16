@@ -7,6 +7,10 @@ set(OUTPUT_STATIC_LIB ${LIB_NAME})
 add_library(Sound_system Sound_system.cpp)
 add_library(${OUTPUT_STATIC_LIB} ${LIB_NAME}.cpp)
 
+target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC 
+  ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 target_link_libraries(${OUTPUT_STATIC_LIB}
   pico_stdlib
   hardware_i2c
