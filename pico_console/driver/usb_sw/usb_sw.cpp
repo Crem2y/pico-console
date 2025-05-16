@@ -4,12 +4,12 @@
 
 #include "usb_sw.hpp"
 
-USB_SW::USB_SW(int pin_dp, int pin_dn) {
+usbSw::usbSw(int pin_dp, int pin_dn) {
   _pin_dp = pin_dp;
   _pin_dn = pin_dn;
 }
 
-void USB_SW::init(void) {
+void usbSw::init(void) {
   gpio_init(_pin_dp);
   gpio_set_dir(_pin_dp, GPIO_IN);
   gpio_pull_down(_pin_dp);

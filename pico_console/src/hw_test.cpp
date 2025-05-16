@@ -31,16 +31,16 @@
 // middlewares
 
 // hw lib init
-LED_STATUS Led = LED_STATUS(8,9,10,11);
-MCP4725 Dac = MCP4725(5,4);
-TM022HDH26 Lcd = TM022HDH26(13,14,15,12);
-PCA9554 Key = PCA9554(3,2);
-LI_BATTERY Bat = LI_BATTERY(28, ((double)1/2));
-IR_REMOTE Ir = IR_REMOTE(21);
-SD_SPI Sdcard = SD_SPI(17,20);
-USB_SW Swusb = USB_SW(6,7);
-//PICO_W_BT Bt = PICO_W_BT();
-PICO_W_WIFI Wifi = PICO_W_WIFI();
+ledStatus Led = ledStatus(8,9,10,11);
+mcp4725 Dac = mcp4725(5,4);
+tm022hdh26 Lcd = tm022hdh26(13,14,15,12);
+pca9554 Key = pca9554(3,2);
+liBattery Bat = liBattery(28, ((double)1/2));
+irRemote Ir = irRemote(21);
+sdSpi Sdcard = sdSpi(17,20);
+usbSw Swusb = usbSw(6,7);
+//picoWBt Bt = picoWBt();
+picoWWifi Wifi = picoWWifi();
 
 //////// dac value ////////
 #define ME(op,ch,wav,vol,oc,fre)  (uint32_t)((op<<24)+(ch<<20)+(wav<<16)+(vol<<8)+(oc<<4)+(fre))

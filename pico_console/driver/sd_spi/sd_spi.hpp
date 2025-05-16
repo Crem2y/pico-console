@@ -15,10 +15,10 @@
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
 
-#define SD_SPI_SLOW 400*1000
-#define SD_SPI_FAST 10*1000*1000
+#define sdSpi_SLOW 400*1000
+#define sdSpi_FAST 10*1000*1000
 
-#define SD_SPI_CH spi0
+#define sdSpi_CH spi0
 
 #define SD_RX 16
 #define SD_SCK 18
@@ -74,9 +74,9 @@ typedef struct _sd_info
 } sd_info;
 
 
-class SD_SPI {
+class sdSpi {
   public:
-  SD_SPI(int pin_cs, int pin_cd);
+  sdSpi(int pin_cs, int pin_cd);
   
   sd_info info;
 

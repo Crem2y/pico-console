@@ -53,12 +53,12 @@ int64_t delay_callback(alarm_id_t id, void *user_data) {
     return 0;
 }
 
-MCP4725::MCP4725(int pin_scl, int pin_sda) {
+mcp4725::mcp4725(int pin_scl, int pin_sda) {
   _pin_scl = pin_scl;
   _pin_sda = pin_sda;
 }
 
-void MCP4725::init(void) {
+void mcp4725::init(void) {
 
   i2c_init(DAC_I2C_CH, 1000 * 1000);             //Initialize I2C on i2c0 port with 1000kHz
   gpio_set_function(_pin_scl, GPIO_FUNC_I2C); //Use GPIO as I2C
@@ -69,7 +69,7 @@ void MCP4725::init(void) {
   add_repeating_timer_us(-(1000000/WAVE_FREQ), timer_callback_mcp4725, NULL, &timer_delay);
 }
 
-void MCP4725::data(uint8_t addr, uint16_t data) {
+void mcp4725::data(uint8_t addr, uint16_t data) {
   uint8_t buf[2] = {0, 0};
 
   buf[0] = data >> 8;
@@ -77,7 +77,7 @@ void MCP4725::data(uint8_t addr, uint16_t data) {
   i2c_write_blocking(DAC_I2C_CH, addr, buf, 2, false);
 }
 
-void MCP4725::menual_beep(uint32_t ms) {
+void mcp4725::menual_beep(uint32_t ms) {
 
   for(int i=0; i<(ms); i++) {
     data(DAC_L, 0);
@@ -89,14 +89,14 @@ void MCP4725::menual_beep(uint32_t ms) {
   }
 }
 
-void MCP4725::menual_mute(void) {
+void mcp4725::menual_mute(void) {
   uint8_t buf[2] = {0x03, 0}; // power-down mode
 
   i2c_write_blocking(DAC_I2C_CH, DAC_L, buf, 2, false);
   i2c_write_blocking(DAC_I2C_CH, DAC_R, buf, 2, false);
 }
 
-void MCP4725::beep(uint32_t ms) {
+void mcp4725::beep(uint32_t ms) {
 
   set_mute(false);
   channel_wave(0, 1000, 15, DAC_wave_pulse_50);
@@ -104,15 +104,15 @@ void MCP4725::beep(uint32_t ms) {
   set_mute(true);
 }
 
-void MCP4725::set_mute(bool mute) {
+void mcp4725::set_mute(bool mute) {
   muted = mute;
 }
 
-void MCP4725::set_waning(uint32_t waning) {
+void mcp4725::set_waning(uint32_t waning) {
   _sound_waning = ((float)waning / (DAC_VOL_MAX*2));
 }
 
-void MCP4725::sound_waning(void) {
+void mcp4725::sound_waning(void) {
   for(int i=0; i<DAC_CH_MAX; i++) {
     if(dac_ch[i].volume > _sound_waning) {
       dac_ch[i].volume -= _sound_waning;
@@ -122,7 +122,7 @@ void MCP4725::sound_waning(void) {
   }
 }
 
-void MCP4725::delay(uint32_t ms) {
+void mcp4725::delay(uint32_t ms) {
   add_alarm_in_ms(ms, delay_callback, NULL, false);
   delay_ended = false;
 
@@ -133,7 +133,7 @@ void MCP4725::delay(uint32_t ms) {
   }
 }
 
-void MCP4725::channel_set(uint8_t channel, float freq, uint8_t volume) {
+void mcp4725::channel_set(uint8_t channel, float freq, uint8_t volume) {
   
   float count_calc = (freq * WAVE_LENGTH) / WAVE_FREQ * WAVE_RES;
   if(volume > DAC_VOL_MAX) volume = DAC_VOL_MAX;
@@ -142,13 +142,13 @@ void MCP4725::channel_set(uint8_t channel, float freq, uint8_t volume) {
   dac_ch[channel].volume = (float)volume / (DAC_VOL_MAX*2);
 }
 
-void MCP4725::channel_wave(uint8_t channel, float freq, uint8_t volume, const float* wave) {
+void mcp4725::channel_wave(uint8_t channel, float freq, uint8_t volume, const float* wave) {
   
   channel_set(channel, freq, volume);
   dac_ch[channel].wave = wave;
 }
 
-void MCP4725::channel_stop(uint8_t channel) {
+void mcp4725::channel_stop(uint8_t channel) {
   
   dac_ch[channel].wave_count = 0;
   dac_ch[channel].count = 0;
@@ -157,7 +157,7 @@ void MCP4725::channel_stop(uint8_t channel) {
   dac_ch[channel].wave = DAC_wave_none;
 }
 
-void MCP4725::play_sound(uint16_t (*music_table)[USING_CH]) {
+void mcp4725::play_sound(uint16_t (*music_table)[USING_CH]) {
     
   unsigned int music_temp;
   unsigned int music_wav;
@@ -210,7 +210,7 @@ void MCP4725::play_sound(uint16_t (*music_table)[USING_CH]) {
   }
 }
 
-void MCP4725::play_music(uint16_t (*music_table)[USING_CH], uint32_t music_length, uint32_t music_delay) {
+void mcp4725::play_music(uint16_t (*music_table)[USING_CH], uint32_t music_length, uint32_t music_delay) {
 
   for(int i=0; i<music_length; i++) {
     music_table_pos = i;
@@ -220,7 +220,7 @@ void MCP4725::play_music(uint16_t (*music_table)[USING_CH], uint32_t music_lengt
   music_table_pos = 0;
 }
 
-void MCP4725::play_sound_ex(const uint32_t music_table) {
+void mcp4725::play_sound_ex(const uint32_t music_table) {
   unsigned int music_ch;
   unsigned int music_wav;
   unsigned int music_vol;
@@ -263,7 +263,7 @@ void MCP4725::play_sound_ex(const uint32_t music_table) {
   channel_wave(music_ch, sound_freq_table[music_freq1 - 1][music_freq2 - 1], music_vol, sound_wave);
 }
 
-void MCP4725::play_music_ex(const uint32_t *music_table, uint32_t music_length, uint32_t music_delay) {
+void mcp4725::play_music_ex(const uint32_t *music_table, uint32_t music_length, uint32_t music_delay) {
   unsigned int music_opcode;
 
   set_mute(false);

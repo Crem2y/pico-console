@@ -7,9 +7,9 @@
 
 #define LED_PWM_MAX 1000
 
-class LED_STATUS {
+class ledStatus {
   public:
-  LED_STATUS(int led_1, int led_2, int led_3, int led_4);
+  ledStatus(int led_1, int led_2, int led_3, int led_4);
 
   void init(void);
   void set_bright(uint32_t num, uint32_t bright);

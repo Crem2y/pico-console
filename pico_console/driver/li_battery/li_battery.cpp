@@ -2,17 +2,17 @@
 
 #include "li_battery.hpp"
 
-LI_BATTERY::LI_BATTERY(int adc_pin, double res_ratio) {
+liBattery::liBattery(int adc_pin, double res_ratio) {
   _adc_pin = adc_pin;
   _res_ratio = res_ratio;
 }
 
-void LI_BATTERY::init(void) {
+void liBattery::init(void) {
   adc_init();
   adc_gpio_init(_adc_pin);
 }
 
-double LI_BATTERY::get_voltage(void) {
+double liBattery::get_voltage(void) {
   adc_select_input(BAT_ADC_CH);
   uint16_t adc_raw = 0;
   
@@ -24,7 +24,7 @@ double LI_BATTERY::get_voltage(void) {
   return voltage;
 }
 
-double LI_BATTERY::get_level(void) {
+double liBattery::get_level(void) {
   double bat_voltage = get_voltage();
 
   double bat_level = 0;

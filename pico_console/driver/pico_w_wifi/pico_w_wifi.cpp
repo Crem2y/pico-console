@@ -38,15 +38,15 @@ static int scan_result(void *env, const cyw43_ev_scan_result_t *result) {
   return 0;
 }
 
-PICO_W_WIFI::PICO_W_WIFI(void) {
+picoWWifi::picoWWifi(void) {
 
 }
 
-void PICO_W_WIFI::init(void) {
+void picoWWifi::init(void) {
   //cyw43_arch_enable_sta_mode();
 }
 
-void PICO_W_WIFI::ap_scan(absolute_time_t scan_time) {
+void picoWWifi::ap_scan(absolute_time_t scan_time) {
   bool scan_in_progress = false;
   ap_num = 0;
 

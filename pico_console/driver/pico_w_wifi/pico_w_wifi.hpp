@@ -25,9 +25,9 @@ static int ap_num = 0;
 
 static int scan_result(void *env, const cyw43_ev_scan_result_t *result);
 
-class PICO_W_WIFI {
+class picoWWifi {
   public:
-  PICO_W_WIFI(void);
+  picoWWifi(void);
 
   void init(void);
   void ap_scan(absolute_time_t scan_time);

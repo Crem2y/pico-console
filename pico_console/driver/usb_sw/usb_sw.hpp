@@ -6,9 +6,9 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
-class USB_SW {
+class usbSw {
   public:
-  USB_SW(int pin_dp, int pin_dn);
+  usbSw(int pin_dp, int pin_dn);
 
   void init(void);
 

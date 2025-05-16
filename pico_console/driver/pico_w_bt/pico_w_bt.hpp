@@ -4,9 +4,9 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
-class PICO_W_BT {
+class picoWBt {
   public:
-  PICO_W_BT(void);
+  picoWBt(void);
 
   void init(void);
 

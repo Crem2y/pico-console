@@ -3,12 +3,12 @@
 
 #include "sd_spi.hpp"
 
-SD_SPI::SD_SPI(int pin_cs, int pin_cd) {
+sdSpi::sdSpi(int pin_cs, int pin_cd) {
   this->_pin_cs = pin_cs;
   this->_pin_cd = pin_cd;
 }
 
-void SD_SPI::init(void) {
+void sdSpi::init(void) {
   gpio_init(_pin_cs);
   gpio_set_dir(_pin_cs, GPIO_OUT);
   gpio_put(_pin_cs, 1);
@@ -17,7 +17,7 @@ void SD_SPI::init(void) {
   gpio_set_dir(_pin_cd, GPIO_IN);
   gpio_pull_up(_pin_cd);
 
-  spi_init(SD_SPI_CH, SD_SPI_FAST);
+  spi_init(sdSpi_CH, sdSpi_FAST);
   gpio_set_function(SD_RX, GPIO_FUNC_SPI);
   gpio_pull_up(SD_RX);
   gpio_set_function(SD_SCK, GPIO_FUNC_SPI);
@@ -27,11 +27,11 @@ void SD_SPI::init(void) {
   this->info.type = SD_TYPE_UNKNOWN;
 }
 
-bool SD_SPI::card_check(void) {
+bool sdSpi::card_check(void) {
   return !gpio_get(_pin_cd);
 }
 
-int SD_SPI::card_init(void) {
+int sdSpi::card_init(void) {
   uint8_t write_buf[16];
   uint8_t read_buf[16];
   uint32_t timeout = 1000;
@@ -41,13 +41,13 @@ int SD_SPI::card_init(void) {
   }
 
   // set low speed
-  spi_init(SD_SPI_CH, SD_SPI_SLOW);
+  spi_init(sdSpi_CH, sdSpi_SLOW);
 
   // set SD card to SPI mode
   // CS high and send over 74 clocks
   memset(write_buf, 0xFF, 10);
   gpio_put(_pin_cs, 1);
-  spi_write_blocking(SD_SPI_CH, write_buf, 10); // 8 * 10 = 80 > 74
+  spi_write_blocking(sdSpi_CH, write_buf, 10); // 8 * 10 = 80 > 74
 
   // send CMD0
   if(send_cmd(SD_CMD0, NULL, read_buf, false) < 0) {
@@ -150,22 +150,22 @@ int SD_SPI::card_init(void) {
   gpio_put(_pin_cs, 1);
   wprintf(L"SD init ok!\n");
   this->info.is_inited = true;
-  spi_init(SD_SPI_CH, SD_SPI_FAST);
+  spi_init(sdSpi_CH, sdSpi_FAST);
 
   wprintf(L"SD init complete!\n");
   return 0;
 }
 
-int SD_SPI::card_deinit(void) {
+int sdSpi::card_deinit(void) {
   gpio_put(_pin_cs, 1);
-  spi_init(SD_SPI_CH, SD_SPI_FAST);
+  spi_init(sdSpi_CH, sdSpi_FAST);
 
   this->info.is_inited = false;
   this->info.type == SD_TYPE_UNKNOWN;
   return 0;
 }
 
-int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_buf, bool keep_cs_low) {
+int sdSpi::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_buf, bool keep_cs_low) {
   uint8_t cmd_buf[6] = {0,};
   uint32_t timeout = 512;
   enum _sd_response_t response = SD_R_UNKNOWN;
@@ -178,7 +178,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
   case SD_CMD0:
     {
       cmd_buf[5] = 0x95;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R1 response
       response = SD_R1;
@@ -188,7 +188,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
     {
       memcpy(&cmd_buf[1], write_buf, 4);
       cmd_buf[5] = 0x87;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R7 response
       response = SD_R7;
@@ -198,7 +198,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
     {
       memcpy(&cmd_buf[1], write_buf, 4);
       cmd_buf[5] = 0xFF;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R1 response
       response = SD_R1;
@@ -208,7 +208,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
     {
       memcpy(&cmd_buf[1], write_buf, 4);
       cmd_buf[5] = 0xFF; // any valid CRC for non-CMD0/CMD8
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
       response = SD_R1;
     }
     break;
@@ -216,14 +216,14 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
     {
       memcpy(&cmd_buf[1], write_buf, 4);
       cmd_buf[5] = 0xFF;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
       response = SD_R1;
     }
     break;
   case SD_CMD55:
     {
       cmd_buf[5] = 0xFF;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R1 response
       response = SD_R1;
@@ -232,7 +232,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
   case SD_CMD58:
     {
       cmd_buf[5] = 0xFF;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R3 response
       response = SD_R3;
@@ -242,7 +242,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
     {
       memcpy(&cmd_buf[1], write_buf, 4);
       cmd_buf[5] = 0xFF;
-      spi_write_blocking(SD_SPI_CH, cmd_buf, 6);
+      spi_write_blocking(sdSpi_CH, cmd_buf, 6);
 
       // wait R1 response
       response = SD_R1;
@@ -257,7 +257,7 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
   cmd_buf[0] = 0xFF;
   for(; timeout > 0; timeout--)
   {
-    spi_write_read_blocking(SD_SPI_CH, cmd_buf, read_buf, 1);
+    spi_write_read_blocking(sdSpi_CH, cmd_buf, read_buf, 1);
     if((read_buf[0] & 0x80) == 0x00) {
       break;
     }
@@ -278,14 +278,14 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
       uint8_t busy;
       do {
         uint8_t dummy = 0xFF;
-        spi_write_read_blocking(SD_SPI_CH, &dummy, &busy, 1);
+        spi_write_read_blocking(sdSpi_CH, &dummy, &busy, 1);
       } while (busy != 0xFF);
     }
     break;
     case SD_R2:
     {
       cmd_buf[2] = 0xFF;
-      spi_write_read_blocking(SD_SPI_CH, cmd_buf, &read_buf[1], 1);
+      spi_write_read_blocking(sdSpi_CH, cmd_buf, &read_buf[1], 1);
     }
     break;
     case SD_R3:
@@ -294,27 +294,27 @@ int SD_SPI::send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_b
       cmd_buf[2] = 0xFF;
       cmd_buf[3] = 0xFF;
       cmd_buf[4] = 0xFF;
-      spi_write_read_blocking(SD_SPI_CH, cmd_buf, &read_buf[1], 4);
+      spi_write_read_blocking(sdSpi_CH, cmd_buf, &read_buf[1], 4);
     }
     break;
   }
 
   if (!keep_cs_low) {
     uint8_t dummy = 0xFF;
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // flush
     gpio_put(_pin_cs, 1);
   }
 
   return 0;
 }
 
-int SD_SPI::sector_read(size_t sector_num, void* buf) {
+int sdSpi::sector_read(size_t sector_num, void* buf) {
   int res = 0;
 
   if(!this->info.is_inited || !buf) {
     return -1;
   }
-  spi_init(SD_SPI_CH, SD_SPI_FAST);
+  spi_init(sdSpi_CH, sdSpi_FAST);
 
   if(this->info.type == SD_TYPE_SDSC) {
     uint8_t write_buf[4];
@@ -336,7 +336,7 @@ int SD_SPI::sector_read(size_t sector_num, void* buf) {
     res = read_data_block((uint8_t*)buf, 512);
     gpio_put(_pin_cs, 1);
     uint8_t dummy = 0xFF;
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // flush
   } else if(this->info.type == SD_TYPE_SDHC) {
     uint8_t write_buf[4];
     uint8_t read_buf[5];
@@ -356,7 +356,7 @@ int SD_SPI::sector_read(size_t sector_num, void* buf) {
     res = read_data_block((uint8_t*)buf, 512);
     gpio_put(_pin_cs, 1);
     uint8_t dummy = 0xFF;
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // flush
   } else {
     return -1;
   }
@@ -364,11 +364,11 @@ int SD_SPI::sector_read(size_t sector_num, void* buf) {
   return res;
 }
 
-int SD_SPI::sector_write(size_t sector_num, void* buf) {
+int sdSpi::sector_write(size_t sector_num, void* buf) {
   if(!this->info.is_inited || !buf) {
     return -1;
   }
-  spi_init(SD_SPI_CH, SD_SPI_FAST);
+  spi_init(sdSpi_CH, sdSpi_FAST);
 
   if(this->info.type == SD_TYPE_SDSC) {
     uint8_t write_buf[4];
@@ -385,17 +385,17 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
       return -24;
 
     gpio_put(_pin_cs, 0);
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // Nwr
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // Nwr
 
     uint8_t token = 0xFE;
-    spi_write_blocking(SD_SPI_CH, &token, 1);
-    spi_write_blocking(SD_SPI_CH, (uint8_t*)buf, 512);
+    spi_write_blocking(sdSpi_CH, &token, 1);
+    spi_write_blocking(sdSpi_CH, (uint8_t*)buf, 512);
 
     uint8_t crc[2] = {0xFF, 0xFF};
-    spi_write_blocking(SD_SPI_CH, crc, 2);
+    spi_write_blocking(sdSpi_CH, crc, 2);
 
     uint8_t resp;
-    spi_write_read_blocking(SD_SPI_CH, &dummy, &resp, 1);
+    spi_write_read_blocking(sdSpi_CH, &dummy, &resp, 1);
     if ((resp & 0x1F) != 0x05) {
       gpio_put(_pin_cs, 1);
       return -25;
@@ -403,11 +403,11 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
 
     uint8_t busy;
     do {
-      spi_write_read_blocking(SD_SPI_CH, &dummy, &busy, 1);
+      spi_write_read_blocking(sdSpi_CH, &dummy, &busy, 1);
     } while (busy == 0x00);
 
     gpio_put(_pin_cs, 1);
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // flush
   } else if(this->info.type == SD_TYPE_SDHC) {
     uint8_t write_buf[4];
     uint8_t read_buf[5];
@@ -423,22 +423,22 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
   
     gpio_put(_pin_cs, 0);
   
-    spi_write_blocking(SD_SPI_CH, &dummy, 1);
+    spi_write_blocking(sdSpi_CH, &dummy, 1);
   
     // data token
     uint8_t token = 0xFE;
-    spi_write_blocking(SD_SPI_CH, &token, 1);
+    spi_write_blocking(sdSpi_CH, &token, 1);
   
     // send data
-    spi_write_blocking(SD_SPI_CH, (uint8_t*)buf, 512);
+    spi_write_blocking(sdSpi_CH, (uint8_t*)buf, 512);
   
     // CRC dummy
     uint8_t crc[2] = {0xFF, 0xFF};
-    spi_write_blocking(SD_SPI_CH, crc, 2);
+    spi_write_blocking(sdSpi_CH, crc, 2);
   
     // check response byte
     uint8_t resp;
-    spi_write_read_blocking(SD_SPI_CH, &dummy, &resp, 1);
+    spi_write_read_blocking(sdSpi_CH, &dummy, &resp, 1);
     if ((resp & 0x1F) != 0x05) {
       gpio_put(_pin_cs, 1);
       return -25;
@@ -447,12 +447,12 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
     // Busy polling
     uint8_t busy;
     do {
-      spi_write_read_blocking(SD_SPI_CH, &dummy, &busy, 1);
+      spi_write_read_blocking(sdSpi_CH, &dummy, &busy, 1);
     } while (busy == 0x00);
   
     gpio_put(_pin_cs, 1);
     dummy = 0xFF;
-    spi_write_blocking(SD_SPI_CH, &dummy, 1); // flush
+    spi_write_blocking(sdSpi_CH, &dummy, 1); // flush
   } else {
     return -1;
   }
@@ -460,7 +460,7 @@ int SD_SPI::sector_write(size_t sector_num, void* buf) {
   return 0;
 }
 
-int SD_SPI::read_data_block(uint8_t* out, size_t len) {
+int sdSpi::read_data_block(uint8_t* out, size_t len) {
   uint8_t dummy = 0xFF;
   uint8_t token;
   uint32_t timeout = 65535;
@@ -468,7 +468,7 @@ int SD_SPI::read_data_block(uint8_t* out, size_t len) {
   // wait data token(0xFE) 
   //gpio_put(_pin_cs, 0);
   do {
-    spi_write_read_blocking(SD_SPI_CH, &dummy, &token, 1);
+    spi_write_read_blocking(sdSpi_CH, &dummy, &token, 1);
     timeout--;
   } while ((token == 0xFF || token == 0x00) && timeout > 0);
   
@@ -480,11 +480,11 @@ int SD_SPI::read_data_block(uint8_t* out, size_t len) {
 
   // recv data
   memset(out, 0xFF, len);
-  spi_write_read_blocking(SD_SPI_CH, out, out, len);
+  spi_write_read_blocking(sdSpi_CH, out, out, len);
 
   // ignore CRC
   uint8_t crc[2] = {0xFF, 0xFF};
-  spi_write_read_blocking(SD_SPI_CH, crc, crc, 2);
+  spi_write_read_blocking(sdSpi_CH, crc, crc, 2);
 
   //gpio_put(_pin_cs, 1);
 

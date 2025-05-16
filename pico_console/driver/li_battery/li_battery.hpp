@@ -9,12 +9,12 @@
 
 #define BAT_ADC_CH 2
 
-class LI_BATTERY {
+class liBattery {
   public:
   double voltage;
   double level;
   
-  LI_BATTERY(int adc_pin, double res_ratio);
+  liBattery(int adc_pin, double res_ratio);
 
   void init(void);
   double get_voltage(void);

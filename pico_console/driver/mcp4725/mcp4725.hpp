@@ -61,9 +61,9 @@ enum op_code {
 bool timer_callback_mcp4725(struct repeating_timer *t);
 int64_t delay_callback(alarm_id_t id, void *user_data);
 
-class MCP4725 {
+class mcp4725 {
   public:
-    MCP4725(int pin_scl, int pin_sda);
+    mcp4725(int pin_scl, int pin_sda);
 
     void init(void);
     void data(uint8_t addr, uint16_t data);

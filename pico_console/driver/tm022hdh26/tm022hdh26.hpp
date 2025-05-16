@@ -1,5 +1,5 @@
 #pragma once
-// TM022HDH26 display lib
+// tm022hdh26 display lib
 
 /*
   Written by Limor Fried/Ladyada for Adafruit Industries.
@@ -111,10 +111,10 @@
 
 #define LCD_BACKLIGHT_MAX 1000
 
-class TM022HDH26 : public Adafruit_GFX {
+class tm022hdh26 : public Adafruit_GFX {
 
  public:
-  TM022HDH26(int pin_reset, int pin_dc, int pin_cs, int pin_led);
+  tm022hdh26(int pin_reset, int pin_dc, int pin_cs, int pin_led);
 
   void     begin(void),
            setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1),

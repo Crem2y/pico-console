@@ -2,10 +2,10 @@
 
 #include "pico_w_bt.hpp"
 
-PICO_W_BT::PICO_W_BT(void) {
+picoWBt::picoWBt(void) {
 
 }
 
-void PICO_W_BT::init(void) {
+void picoWBt::init(void) {
 
 }

@@ -1,4 +1,4 @@
-// TM022HDH26 display lib
+// tm022hdh26 display lib
 
 // Based in part on Adafruit ILI9340 display driver
 // https://github.com/adafruit/Adafruit_ILI9340
@@ -30,18 +30,18 @@ static inline void cs_deselect(uint cs_pin) {
 
 // Constructor when using hardware SPI.  Faster, but must use SPI pins
 // specific to each board type (e.g. 11,13 for Uno, 51,52 for Mega, etc.)
-TM022HDH26::TM022HDH26(int pin_reset, int pin_dc, int pin_cs, int pin_led) : Adafruit_GFX(ILI9340_TFTWIDTH, ILI9340_TFTHEIGHT) {
+tm022hdh26::tm022hdh26(int pin_reset, int pin_dc, int pin_cs, int pin_led) : Adafruit_GFX(ILI9340_TFTWIDTH, ILI9340_TFTHEIGHT) {
   _pin_reset = pin_reset;
   _pin_dc = pin_dc;
   _pin_cs = pin_cs;
   _pin_led = pin_led;
 }
 
-void TM022HDH26::spiwrite(uint8_t cmd) {
+void tm022hdh26::spiwrite(uint8_t cmd) {
   spi_write_blocking(DISPLAY_SPI_CH, &cmd, 1);
 }
 
-void TM022HDH26::writecommand(uint8_t cmd) {
+void tm022hdh26::writecommand(uint8_t cmd) {
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 0);
   spi_write_blocking(DISPLAY_SPI_CH, &cmd, 1);
@@ -49,7 +49,7 @@ void TM022HDH26::writecommand(uint8_t cmd) {
   cs_deselect(_pin_cs);
 }
 
-void TM022HDH26::writedata(uint8_t d) {
+void tm022hdh26::writedata(uint8_t d) {
   cs_select(_pin_cs);
   spi_write_blocking(DISPLAY_SPI_CH, &d, 1);
   cs_deselect(_pin_cs);
@@ -64,7 +64,7 @@ void TM022HDH26::writedata(uint8_t d) {
 
 // Companion code to the above tables.  Reads and issues
 // a series of LCD commands stored in PROGMEM byte array.
-void TM022HDH26::commandList(uint8_t *addr) {
+void tm022hdh26::commandList(uint8_t *addr) {
 
   uint8_t  numCommands, numArgs;
   uint16_t ms;
@@ -88,7 +88,7 @@ void TM022HDH26::commandList(uint8_t *addr) {
 }
 
 
-void TM022HDH26::begin(void) {
+void tm022hdh26::begin(void) {
   gpio_init(_pin_reset);
   gpio_set_dir(_pin_reset, GPIO_OUT);
   gpio_put(_pin_reset, 1);
@@ -247,7 +247,7 @@ void TM022HDH26::begin(void) {
 }
 
 
-void TM022HDH26::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1,
+void tm022hdh26::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1,
  uint16_t y1) {
 
   writecommand(ILI9340_CASET); // Column addr set
@@ -266,7 +266,7 @@ void TM022HDH26::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1,
 }
 
 
-void TM022HDH26::pushColor(uint16_t color) {
+void tm022hdh26::pushColor(uint16_t color) {
 
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
@@ -277,7 +277,7 @@ void TM022HDH26::pushColor(uint16_t color) {
   cs_deselect(_pin_cs);
 }
 
-void TM022HDH26::drawPixel(int16_t x, int16_t y, uint16_t color) {
+void tm022hdh26::drawPixel(int16_t x, int16_t y, uint16_t color) {
 
   if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
 
@@ -293,7 +293,7 @@ void TM022HDH26::drawPixel(int16_t x, int16_t y, uint16_t color) {
 }
 
 
-void TM022HDH26::drawFastVLine(int16_t x, int16_t y, int16_t h,
+void tm022hdh26::drawFastVLine(int16_t x, int16_t y, int16_t h,
  uint16_t color) {
 
   // Rudimentary clipping
@@ -318,7 +318,7 @@ void TM022HDH26::drawFastVLine(int16_t x, int16_t y, int16_t h,
 }
 
 
-void TM022HDH26::drawFastHLine(int16_t x, int16_t y, int16_t w,
+void tm022hdh26::drawFastHLine(int16_t x, int16_t y, int16_t w,
   uint16_t color) {
 
   // Rudimentary clipping
@@ -336,12 +336,12 @@ void TM022HDH26::drawFastHLine(int16_t x, int16_t y, int16_t w,
   cs_deselect(_pin_cs);
 }
 
-void TM022HDH26::fillScreen(uint16_t color) {
+void tm022hdh26::fillScreen(uint16_t color) {
   fillRect(0, 0,  _width, _height, color);
 }
 
 // fill a rectangle
-void TM022HDH26::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+void tm022hdh26::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   uint16_t color) {
 
   // rudimentary clipping (drawChar w/big text requires this)
@@ -367,12 +367,12 @@ void TM022HDH26::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 
 
 // Pass 8-bit (each) R,G,B, get back 16-bit packed color
-uint16_t TM022HDH26::Color565(uint8_t r, uint8_t g, uint8_t b) {
+uint16_t tm022hdh26::Color565(uint8_t r, uint8_t g, uint8_t b) {
   return ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
 }
 
 
-void TM022HDH26::setRotation(uint8_t m) {
+void tm022hdh26::setRotation(uint8_t m) {
 
   writecommand(ILI9340_MADCTL);
   rotation = m % 4; // can't be higher than 3
@@ -401,7 +401,7 @@ void TM022HDH26::setRotation(uint8_t m) {
 }
 
 
-void TM022HDH26::invertDisplay(bool i) {
+void tm022hdh26::invertDisplay(bool i) {
   writecommand(i ? ILI9340_INVON : ILI9340_INVOFF);
 }
 
@@ -409,7 +409,7 @@ void TM022HDH26::invertDisplay(bool i) {
 ////////// stuff not actively being used, but kept for posterity
 
 
-uint8_t TM022HDH26::spiread(void) {
+uint8_t tm022hdh26::spiread(void) {
   uint8_t r = 0;
 
   cs_select(_pin_cs);
@@ -419,7 +419,7 @@ uint8_t TM022HDH26::spiread(void) {
   return r;
 }
 
-uint8_t TM022HDH26::readdata(void) {
+uint8_t tm022hdh26::readdata(void) {
 
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
@@ -431,7 +431,7 @@ uint8_t TM022HDH26::readdata(void) {
   return r;
 }
 
-uint8_t TM022HDH26::readcommand8(uint8_t c) {
+uint8_t tm022hdh26::readcommand8(uint8_t c) {
 
   cs_deselect(_pin_cs);
   gpio_put(_pin_dc, 0);
@@ -445,11 +445,11 @@ uint8_t TM022HDH26::readcommand8(uint8_t c) {
   return r;
 }
 
-void TM022HDH26::set_bright(uint32_t bright) {
+void tm022hdh26::set_bright(uint32_t bright) {
   _bright = bright;
   pwm_set_chan_level(slice_num, led_pwm_ch, bright);
 }
 
-uint32_t TM022HDH26::get_bright(void) {
+uint32_t tm022hdh26::get_bright(void) {
   return _bright;
 }

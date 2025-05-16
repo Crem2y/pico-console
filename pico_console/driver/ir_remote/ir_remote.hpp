@@ -5,9 +5,9 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 
-class IR_REMOTE {
+class irRemote {
   public:
-  IR_REMOTE(int ir_pin);
+  irRemote(int ir_pin);
 
   void init(void);
 

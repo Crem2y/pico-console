@@ -106,9 +106,9 @@ typedef struct _key_flags_t{
   };
 } key_flags_t;
 
-class PCA9554 {
+class pca9554 {
   public:
-    PCA9554(int pin_scl, int pin_sda);
+    pca9554(int pin_scl, int pin_sda);
 
     uint8_t key_log[KEY_LOG_MAX] = {KEY_NONE,};
     uint32_t key_pressed = 0x00000000;
