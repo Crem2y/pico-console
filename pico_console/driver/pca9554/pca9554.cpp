@@ -23,13 +23,13 @@ void pca9554::init(void) {
   gpio_pull_up(_pin_sda);
 
   uint8_t buf[2] = {0x02, 0xFF};              // set all ports of pca9554 to input  
-  wprintf(L"KEY CHIP");
+  LOG_PRINTF("KEY CHIP");
   i2c_write_blocking(_i2c, KEY_IC_A, buf, 2, false);
-  wprintf(L"A");
+  LOG_PRINTF("A");
   i2c_write_blocking(_i2c, KEY_IC_B, buf, 2, false);
-  wprintf(L"B");
+  LOG_PRINTF("B");
   i2c_write_blocking(_i2c, KEY_IC_C, buf, 2, false);
-  wprintf(L"C OK\n");
+  LOG_PRINTF("C OK\n");
 
   log_reset();
   key_pressed = 0x00000000;

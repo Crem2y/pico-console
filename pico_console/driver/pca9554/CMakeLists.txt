@@ -13,6 +13,7 @@ target_include_directories(${OUTPUT_STATIC_LIB} PUBLIC
 target_link_libraries(${OUTPUT_STATIC_LIB}
   pico_stdlib
   hardware_i2c
+  uart_log
 )
 
 message(STATUS "building lib \"${LIB_NAME}\" completed!")

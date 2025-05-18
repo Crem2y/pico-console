@@ -7,13 +7,11 @@
 #include <string.h>
 #include <ctype.h>
 
-// for using unicode
-#include <wchar.h>
-#include <locale.h>
-
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
+
+#include "uart_log.hpp"
 
 #define SD_SPI_SLOW (400*1000)
 #define SD_SPI_FAST (10*1000*1000)

@@ -40,6 +40,8 @@ void uartLog_init(uart_inst_t* uart, int tx_pin, int rx_pin, int baudrate) {
   irq_set_enabled(UART0_IRQ, true);
 
   uart_set_irq_enables(_uart, true, false); // RX: true, TX: false
+
+  setlocale(LC_ALL,"");
 }
 
 void uartLog_set_baudrate(int baudrate) {

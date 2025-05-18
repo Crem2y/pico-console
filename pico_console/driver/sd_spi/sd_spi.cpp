@@ -56,7 +56,7 @@ int sdSpi::card_init(void) {
 
   // send CMD0
   if(send_cmd(SD_CMD0, NULL, read_buf, false) < 0) {
-    wprintf(L"CMD0 timeout\n");
+    LOG_PRINTF("CMD0 timeout\n");
     return -1;
   }
 
@@ -79,7 +79,7 @@ int sdSpi::card_init(void) {
   for(; timeout > 0; timeout--) {
     // send CMD55
     if(send_cmd(SD_CMD55, NULL, read_buf, false) < 0) {
-      wprintf(L"CMD55 timeout\n");
+      LOG_PRINTF("CMD55 timeout\n");
       return -55;
     }
 
@@ -93,7 +93,7 @@ int sdSpi::card_init(void) {
     write_buf[2] = 0x00;
     write_buf[3] = 0x00;
     if(send_cmd(SD_ACMD41, write_buf, read_buf, false) < 0) {
-      wprintf(L"ACMD41 timeout\n");
+      LOG_PRINTF("ACMD41 timeout\n");
       return -41;
     }
 
@@ -105,34 +105,34 @@ int sdSpi::card_init(void) {
   }
 
   if(!timeout) {
-    wprintf(L"ACMD41 loop timeout\n");
+    LOG_PRINTF("ACMD41 loop timeout\n");
     return -41;
   }
 
   // send CMD58
   if(send_cmd(SD_CMD58, NULL, read_buf, false) < 0) {
-    wprintf(L"CMD58 timeout\n");
+    LOG_PRINTF("CMD58 timeout\n");
     return -58;
   }
 
   if(read_buf[1] & 0x40) {
     this->info.type = SD_TYPE_SDHC;
-    wprintf(L"SDHC/SDXC card detected\n");
+    LOG_PRINTF("SDHC/SDXC card detected\n");
   } else {
     this->info.type = SD_TYPE_SDSC;
-    wprintf(L"SDSC card detected\n");
+    LOG_PRINTF("SDSC card detected\n");
   }
 
   // send CMD9
   if (send_cmd(SD_CMD9, NULL, read_buf, true) < 0 || read_buf[0] != 0x00) {
-    wprintf(L"CMD9 failed\n");
+    LOG_PRINTF("CMD9 failed\n");
     gpio_put(_pin_cs, 1);
     return -9;
   }
   
   uint8_t csd[16];
   if (read_data_block(csd, 16) < 0) {
-    wprintf(L"CSD read failed\n");
+    LOG_PRINTF("CSD read failed\n");
     gpio_put(_pin_cs, 1);
     return -19;
   }
@@ -153,11 +153,11 @@ int sdSpi::card_init(void) {
 
   // init complete, set high speed
   gpio_put(_pin_cs, 1);
-  wprintf(L"SD init ok!\n");
+  LOG_PRINTF("SD init ok!\n");
   this->info.is_inited = true;
   spi_init(_spi, SD_SPI_FAST);
 
-  wprintf(L"SD init complete!\n");
+  LOG_PRINTF("SD init complete!\n");
   return 0;
 }
 
@@ -332,7 +332,7 @@ int sdSpi::sector_read(size_t sector_num, void* buf) {
     write_buf[3] = addr & 0xFF;
 
     if (send_cmd(SD_CMD17, write_buf, read_buf, true) < 0 || read_buf[0] != 0x00) {
-      wprintf(L"CMD17 (SDSC) error: 0x%02X\n", read_buf[0]);
+      LOG_PRINTF("CMD17 (SDSC) error: 0x%02X\n", read_buf[0]);
       gpio_put(_pin_cs, 1);
       return -17; 
     }
@@ -352,7 +352,7 @@ int sdSpi::sector_read(size_t sector_num, void* buf) {
     write_buf[3] = (sector_num) & 0xFF;
   
     if (send_cmd(SD_CMD17, write_buf, read_buf, true) < 0 || read_buf[0] != 0x00) {
-      wprintf(L"CMD17 response error: 0x%02X\n", read_buf[0]);
+      LOG_PRINTF("CMD17 response error: 0x%02X\n", read_buf[0]);
       gpio_put(_pin_cs, 1);
       return -17; 
     }
@@ -478,7 +478,7 @@ int sdSpi::read_data_block(uint8_t* out, size_t len) {
   } while ((token == 0xFF || token == 0x00) && timeout > 0);
   
   if (token != 0xFE) {
-    wprintf(L"Unexpected token: 0x%02X\n", token);
+    LOG_PRINTF("Unexpected token: 0x%02X\n", token);
     //gpio_put(_pin_cs, 1);
     return -1;
   }

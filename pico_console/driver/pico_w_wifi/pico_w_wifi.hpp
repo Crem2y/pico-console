@@ -1,16 +1,13 @@
 #pragma once
 // PICO W WIFI lib
 
-#include <stdio.h>
 #include "pico/stdlib.h"
 #include "pico/cyw43_arch.h"
 
 #include "hardware/vreg.h"
 #include "hardware/clocks.h"
 
-// for using unicode
-#include <wchar.h>
-#include <locale.h>
+#include "uart_log.hpp"
 
 typedef struct {
   char    ssid[32];

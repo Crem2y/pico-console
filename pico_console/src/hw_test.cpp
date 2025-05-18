@@ -88,11 +88,10 @@ int main() { // uses core 0 to sub core
   built_in_led_on();
 
   multicore_launch_core1(core1_entry);
-  setlocale(LC_ALL,"");
 
   // initalizing hardwares
   Led.init();
-  wprintf(L"LED ok\n");
+  LOG_PRINTF("LED ok\n");
   Lcd.begin();
   Lcd.fillScreen(0x0000);
   Lcd.drawBitmap(128, 60, raspberry64x80, 64, 80, 0xFFFF, 0x0000);
@@ -101,23 +100,23 @@ int main() { // uses core 0 to sub core
   Lcd.setTextColor(0xFFFF, 0x0000);
   Lcd.setTextSize(2);
   Lcd.print_5x8("PICO CONSOLE");
-  wprintf(L"LCD ok\n");
+  LOG_PRINTF("LCD ok\n");
   Dac.init();
-  wprintf(L"DAC ok\n");
+  LOG_PRINTF("DAC ok\n");
   Sound.init(dac_output_wrapper, dac_mute_wrapper, dac_unmute_wrapper);
   Sound.init_timer();
   Key.init();
-  wprintf(L"KEY ok\n");
+  LOG_PRINTF("KEY ok\n");
   Bat.init();
-  wprintf(L"BAT ok\n");
+  LOG_PRINTF("BAT ok\n");
   Ir.init();
-  wprintf(L"IR ok\n");
+  LOG_PRINTF("IR ok\n");
   Sdcard.init();
-  wprintf(L"SD card ok\n");
+  LOG_PRINTF("SD card ok\n");
   Swusb.init();
-  wprintf(L"SW USB ok\n");
-  wprintf(L"all HWs ok!\n");
-  wprintf(L"core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
+  LOG_PRINTF("SW USB ok\n");
+  LOG_PRINTF("all HWs ok!\n");
+  LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
 
   // boot sequence start
@@ -128,18 +127,18 @@ int main() { // uses core 0 to sub core
   Lcd.print_5x8("press SELECT+START to quiet boot");
   Key.wait_until(KEY_START, true);
 
-  wprintf(L"code check..\n");
+  LOG_PRINTF("code check..\n");
   for(int i=0; i<10; i++) {
     //printf("%d %d...\n", Key.key_log[i+2], conami_code[9-i]);
     if(Key.key_log[i+1] != conami_code[9-i]) break;
     if(i == 9) {
-      wprintf(L"code activated!\n");
+      LOG_PRINTF("code activated!\n");
       Sound.set_waning(32);
       Sound.play_music_ex(Music_Test, 10, 100);
     }
   }
 
-  wprintf(L"go to main loop\n");
+  LOG_PRINTF("go to main loop\n");
   multicore_fifo_push_blocking(1);
 
   sleep_ms(100);
@@ -676,25 +675,25 @@ void menu_sd_test(void) {
     uint8_t buf[512] = {0,};
     ret = Sdcard.sector_read(0, buf);
     if(ret < 0) {
-      wprintf(L"sector_read error(%d)\n", ret);
+      LOG_PRINTF("sector_read error(%d)\n", ret);
     }
-    wprintf(L"SD SECTOR[0] : ");
+    LOG_PRINTF("SD SECTOR[0] : ");
     for(int i=0; i<512; i++)
     {
-      wprintf(L"%02X ", buf[i]);
+      LOG_PRINTF("%02X ", buf[i]);
     }
-    wprintf(L"\n");
+    LOG_PRINTF("\n");
 
     ret = Sdcard.sector_read(1, buf);
     if(ret < 0) {
-      wprintf(L"sector_read error(%d)\n", ret);
+      LOG_PRINTF("sector_read error(%d)\n", ret);
     }
-    wprintf(L"SD SECTOR[1] : ");
+    LOG_PRINTF("SD SECTOR[1] : ");
     for(int i=0; i<512; i++)
     {
-      wprintf(L"%02X ", buf[i]);
+      LOG_PRINTF("%02X ", buf[i]);
     }
-    wprintf(L"\n");
+    LOG_PRINTF("\n");
   }
 
   while(1) {

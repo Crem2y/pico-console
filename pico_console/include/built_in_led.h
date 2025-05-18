@@ -10,7 +10,6 @@ void built_in_led_off(void);
 int built_in_led_init(void) {
   #ifdef PICO_W
   if (cyw43_arch_init()) {
-    wprintf(L"Wi-Fi init failed");
     return -1;
   }
   #else

@@ -5,6 +5,8 @@
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"
 
+#include "uart_log.hpp"
+
 #define KEY_LOG_MAX 32 // set key log length
 #define KEY_IC_A 0x38 // PCM2554 (A) address
 #define KEY_IC_B 0x39 // PCM2554 (B) address
