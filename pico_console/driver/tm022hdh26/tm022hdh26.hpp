@@ -16,10 +16,6 @@
 
 /////////////////////////////////////////////////////////////////////
 
-#define PROGMEM
-#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
-#define pgm_read_word(addr) (*(const unsigned short *)(addr))
-
 #ifndef _ADAFRUIT_ILI9340H_
 #define _ADAFRUIT_ILI9340H_
 
@@ -135,10 +131,9 @@ class tm022hdh26 : public Adafruit_GFX {
   */  
 
   void     spiwrite8(uint8_t cmd),
-    spiwrite16(uint16_t cmd),
-    writecommand(uint8_t cmd),
-    writedata(uint8_t d),
-    commandList(uint8_t *addr);
+           spiwrite16(uint16_t cmd),
+           writecommand(uint8_t cmd),
+           writedata(uint8_t d);
   uint8_t  spiread(void);
 
   void set_bright(uint32_t bright);
