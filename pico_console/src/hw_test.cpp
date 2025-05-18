@@ -33,13 +33,13 @@
 
 // hw lib init
 ledStatus Led = ledStatus(8,9,10,11);
-mcp4725 Dac = mcp4725(5,4);
+mcp4725 Dac = mcp4725(i2c0, 5,4);
 soundSystem Sound = soundSystem();
-tm022hdh26 Lcd = tm022hdh26(13,14,15,12);
-pca9554 Key = pca9554(3,2);
+tm022hdh26 Lcd = tm022hdh26(spi0, 19,16,18, 13,14,15,12);
+pca9554 Key = pca9554(i2c1, 3,2);
 liBattery Bat = liBattery(28, ((double)1/2));
 irRemote Ir = irRemote(21);
-sdSpi Sdcard = sdSpi(17,20);
+sdSpi Sdcard = sdSpi(spi0, 19,16,18, 17,20);
 usbSw Swusb = usbSw(6,7);
 //picoWBt Bt = picoWBt();
 picoWWifi Wifi = picoWWifi();

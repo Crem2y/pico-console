@@ -30,28 +30,38 @@ static inline void cs_deselect(uint cs_pin) {
 
 // Constructor when using hardware SPI.  Faster, but must use SPI pins
 // specific to each board type (e.g. 11,13 for Uno, 51,52 for Mega, etc.)
-tm022hdh26::tm022hdh26(int pin_reset, int pin_dc, int pin_cs, int pin_led) : Adafruit_GFX(ILI9340_TFTWIDTH, ILI9340_TFTHEIGHT) {
+tm022hdh26::tm022hdh26(spi_inst_t* spi, int pin_tx, int pin_rx, int pin_sck, int pin_reset, int pin_dc, int pin_cs, int pin_led) : Adafruit_GFX(ILI9340_TFTWIDTH, ILI9340_TFTHEIGHT) {
+  _spi = spi;
+  _pin_tx = pin_tx;
+  _pin_rx = pin_rx;
+  _pin_sck = pin_sck;
+
   _pin_reset = pin_reset;
   _pin_dc = pin_dc;
   _pin_cs = pin_cs;
   _pin_led = pin_led;
 }
 
-void tm022hdh26::spiwrite(uint8_t cmd) {
-  spi_write_blocking(DISPLAY_SPI_CH, &cmd, 1);
+void tm022hdh26::spiwrite8(uint8_t cmd) {
+  spi_write_blocking(_spi, &cmd, 1);
+}
+
+void tm022hdh26::spiwrite16(uint16_t cmd) {
+  uint8_t temp[2] = {(uint8_t)(cmd>>8), (uint8_t)cmd};
+  spi_write_blocking(_spi, temp, 2);
 }
 
 void tm022hdh26::writecommand(uint8_t cmd) {
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 0);
-  spi_write_blocking(DISPLAY_SPI_CH, &cmd, 1);
+  spi_write_blocking(_spi, &cmd, 1);
   gpio_put(_pin_dc, 1);
   cs_deselect(_pin_cs);
 }
 
 void tm022hdh26::writedata(uint8_t d) {
   cs_select(_pin_cs);
-  spi_write_blocking(DISPLAY_SPI_CH, &d, 1);
+  spi_write_blocking(_spi, &d, 1);
   cs_deselect(_pin_cs);
 } 
 
@@ -100,10 +110,10 @@ void tm022hdh26::begin(void) {
   gpio_set_dir(_pin_cs, GPIO_OUT);
   gpio_put(_pin_cs, 1);
 
-  spi_init(DISPLAY_SPI_CH, 25 * 1000000);
-  gpio_set_function(DISPLAY_RX, GPIO_FUNC_SPI);
-  gpio_set_function(DISPLAY_SCK, GPIO_FUNC_SPI);
-  gpio_set_function(DISPLAY_TX, GPIO_FUNC_SPI);
+  spi_init(_spi, LCD_SPI_FAST);
+  gpio_set_function(_pin_rx, GPIO_FUNC_SPI);
+  gpio_set_function(_pin_sck, GPIO_FUNC_SPI);
+  gpio_set_function(_pin_tx, GPIO_FUNC_SPI);
 
   // toggle RST low to reset
   gpio_put(_pin_reset, 0);
@@ -235,7 +245,7 @@ void tm022hdh26::begin(void) {
 
   setRotation(3);
 
-  // pwm initalize
+  // pwm initialize
   gpio_set_function(_pin_led, GPIO_FUNC_PWM);
   slice_num = pwm_gpio_to_slice_num(_pin_led);
   led_pwm_ch = (_pin_led % 2) ? PWM_CHAN_B : PWM_CHAN_A;
@@ -271,8 +281,7 @@ void tm022hdh26::pushColor(uint16_t color) {
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
 
-  spiwrite(color >> 8);
-  spiwrite(color);
+  spiwrite16(color);
 
   cs_deselect(_pin_cs);
 }
@@ -286,8 +295,7 @@ void tm022hdh26::drawPixel(int16_t x, int16_t y, uint16_t color) {
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
 
-  spiwrite(color >> 8);
-  spiwrite(color);
+  spiwrite16(color);
 
   cs_deselect(_pin_cs);
 }
@@ -304,14 +312,11 @@ void tm022hdh26::drawFastVLine(int16_t x, int16_t y, int16_t h,
 
   setAddrWindow(x, y, x, y+h-1);
 
-  uint8_t hi = color >> 8, lo = color;
-
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
   
   while (h--) {
-    spiwrite(hi);
-    spiwrite(lo);
+    spiwrite16(color);
   }
 
   cs_deselect(_pin_cs);
@@ -326,12 +331,10 @@ void tm022hdh26::drawFastHLine(int16_t x, int16_t y, int16_t w,
   if((x+w-1) >= _width)  w = _width-x;
   setAddrWindow(x, y, x+w-1, y);
 
-  uint8_t hi = color >> 8, lo = color;
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
   while (w--) {
-    spiwrite(hi);
-    spiwrite(lo);
+    spiwrite16(color);
   }
   cs_deselect(_pin_cs);
 }
@@ -351,15 +354,12 @@ void tm022hdh26::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
 
   setAddrWindow(x, y, x+w-1, y+h-1);
 
-  uint8_t hi = color >> 8, lo = color;
-
   cs_select(_pin_cs);
   gpio_put(_pin_dc, 1);
 
   for(y=h; y>0; y--) {
     for(x=w; x>0; x--) {
-      spiwrite(hi);
-      spiwrite(lo);
+      spiwrite16(color);
     }
   }
   cs_deselect(_pin_cs);
@@ -413,7 +413,7 @@ uint8_t tm022hdh26::spiread(void) {
   uint8_t r = 0;
 
   cs_select(_pin_cs);
-  spi_read_blocking(DISPLAY_SPI_CH, 0, &r, 1);
+  spi_read_blocking(_spi, 0, &r, 1);
   cs_deselect(_pin_cs);
 
   return r;
@@ -436,7 +436,7 @@ uint8_t tm022hdh26::readcommand8(uint8_t c) {
   cs_deselect(_pin_cs);
   gpio_put(_pin_dc, 0);
    
-  spiwrite(c);
+  spiwrite8(c);
 
   gpio_put(_pin_dc, 1);
   uint8_t r = spiread();

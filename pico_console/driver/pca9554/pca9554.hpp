@@ -6,7 +6,6 @@
 #include "hardware/i2c.h"
 
 #define KEY_LOG_MAX 32 // set key log length
-#define KEY_I2C_CH i2c1
 #define KEY_IC_A 0x38 // PCM2554 (A) address
 #define KEY_IC_B 0x39 // PCM2554 (B) address
 #define KEY_IC_C 0x3A // PCM2554 (C) address
@@ -108,7 +107,7 @@ typedef struct _key_flags_t{
 
 class pca9554 {
   public:
-    pca9554(int pin_scl, int pin_sda);
+    pca9554(i2c_inst_t* i2c, int pin_scl, int pin_sda);
 
     uint8_t key_log[KEY_LOG_MAX] = {KEY_NONE,};
     uint32_t key_pressed = 0x00000000;
@@ -123,4 +122,5 @@ class pca9554 {
 
   private:
     int _pin_scl, _pin_sda;
+    i2c_inst_t* _i2c;
 };

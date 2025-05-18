@@ -15,14 +15,8 @@
 #include "hardware/gpio.h"
 #include "hardware/spi.h"
 
-#define sdSpi_SLOW 400*1000
-#define sdSpi_FAST 10*1000*1000
-
-#define sdSpi_CH spi0
-
-#define SD_RX 16
-#define SD_SCK 18
-#define SD_TX 19
+#define SD_SPI_SLOW (400*1000)
+#define SD_SPI_FAST (10*1000*1000)
 
 enum _sd_type_t {
   SD_TYPE_SDSC,
@@ -76,7 +70,7 @@ typedef struct _sd_info
 
 class sdSpi {
   public:
-  sdSpi(int pin_cs, int pin_cd);
+  sdSpi(spi_inst_t* spi, int pin_tx, int pin_rx, int pin_sck, int pin_cs, int pin_cd);
   
   sd_info info;
 
@@ -89,6 +83,8 @@ class sdSpi {
   int sector_write(size_t sector_num, void* buf);
 
   private:
+  spi_inst_t* _spi;
+  int _pin_tx, _pin_rx, _pin_sck;
   int _pin_cs, _pin_cd;
 
   int send_cmd(enum _sd_command_t cmd, uint8_t* write_buf, uint8_t* read_buf, bool keep_cs_low);

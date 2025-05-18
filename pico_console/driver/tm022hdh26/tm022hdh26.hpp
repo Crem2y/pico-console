@@ -12,11 +12,7 @@
 #include "hardware/spi.h"
 #include "hardware/pwm.h"
 
-#define DISPLAY_SPI_CH spi0
-
-#define DISPLAY_RX 16
-#define DISPLAY_SCK 18
-#define DISPLAY_TX 19
+#define LCD_SPI_FAST (50*1000*1000)
 
 /////////////////////////////////////////////////////////////////////
 
@@ -114,7 +110,7 @@
 class tm022hdh26 : public Adafruit_GFX {
 
  public:
-  tm022hdh26(int pin_reset, int pin_dc, int pin_cs, int pin_led);
+  tm022hdh26(spi_inst_t* spi, int pin_tx, int pin_rx, int pin_sck, int pin_reset, int pin_dc, int pin_cs, int pin_led);
 
   void     begin(void),
            setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1),
@@ -138,7 +134,8 @@ class tm022hdh26 : public Adafruit_GFX {
   void     dummyclock(void);
   */  
 
-  void     spiwrite(uint8_t cmd),
+  void     spiwrite8(uint8_t cmd),
+    spiwrite16(uint16_t cmd),
     writecommand(uint8_t cmd),
     writedata(uint8_t d),
     commandList(uint8_t *addr);
@@ -147,8 +144,10 @@ class tm022hdh26 : public Adafruit_GFX {
   void set_bright(uint32_t bright);
   uint32_t get_bright(void);
 
- private:
+private:
   uint8_t  tabcolor;
+  spi_inst_t* _spi;
+  int _pin_tx, _pin_rx, _pin_sck;
   int _pin_reset, _pin_dc, _pin_cs, _pin_led;
   uint32_t _bright;
   int slice_num, led_pwm_ch;
