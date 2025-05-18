@@ -55,7 +55,8 @@ class soundSystem {
   public:
     soundSystem(void);
 
-    void init(void);
+    void init(void (*dac_output)(uint16_t left, uint16_t right), void (*dac_mute)(void), void (*dac_unmute)(void));
+    void init_timer(void);
     void menual_beep(uint32_t ms);
     void menual_mute(void);
 

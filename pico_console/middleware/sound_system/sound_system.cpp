@@ -52,7 +52,23 @@ soundSystem::soundSystem(void) {
 
 }
 
-void soundSystem::init(void) {
+void soundSystem::init(void (*dac_output)(uint16_t left, uint16_t right), void (*dac_mute)(void), void (*dac_unmute)(void)) {
+  this->dac_output = dac_output;
+  this->dac_mute = dac_mute;
+  this->dac_unmute = dac_unmute;
+
+  for(int i=0; i<DAC_CH_MAX; i++) {
+    dac_ch[i].volume      = 0;
+    dac_ch[i].wave_count  = 0;
+    dac_ch[i].count       = 0;
+    dac_ch[i].count_up    = 0;
+    dac_ch[i].wave        = DAC_wave_none;
+  }
+  delay_ended = false;
+  muted = false;
+}
+
+void soundSystem::init_timer(void) {
 
   add_repeating_timer_us(-(1000000/WAVE_FREQ), timer_callback_sound, NULL, &timer_delay);
 }

@@ -103,10 +103,8 @@ int main() { // uses core 0 to sub core
   wprintf(L"LCD ok\n");
   Dac.init();
   wprintf(L"DAC ok\n");
-  Sound.init();
-  Sound.dac_output = dac_output_wrapper;
-  Sound.dac_mute = dac_mute_wrapper;
-  Sound.dac_unmute = dac_unmute_wrapper;
+  Sound.init(dac_output_wrapper, dac_mute_wrapper, dac_unmute_wrapper);
+  Sound.init_timer();
   Key.init();
   wprintf(L"KEY ok\n");
   Bat.init();
