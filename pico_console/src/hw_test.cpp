@@ -17,6 +17,7 @@
 #include "raspberry_logo.h"
 
 // drivers
+#include "uart_log.hpp"
 #include "led_status.hpp"
 #include "li_battery.hpp"
 #include "ir_remote.hpp"
@@ -80,7 +81,7 @@ void dac_unmute_wrapper() {
 }
 
 int main() { // uses core 0 to sub core
-  stdio_init_all();
+  uartLog_init(uart0, 0, 1, 115200);
   built_in_led_init();
 
   sleep_ms(100);

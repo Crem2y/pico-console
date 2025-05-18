@@ -1,5 +1,6 @@
 message(STATUS "building drivers...")
 
+add_subdirectory(uart_log)
 add_subdirectory(led_status)
 add_subdirectory(li_battery)
 add_subdirectory(ir_remote)
@@ -14,6 +15,7 @@ add_subdirectory(usb_sw)
 add_library(driver INTERFACE)
 
 target_link_libraries(driver INTERFACE
+  uart_log
   led_status
   li_battery
   ir_remote
