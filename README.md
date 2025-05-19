@@ -57,7 +57,7 @@ This project is licensed primarily under the **MIT License**.
 It also includes third-party components with the following licenses:
 
 - **Adafruit_ILI9340** (by Limor Fried / Adafruit), licensed under the **MIT License**.  
-  See [github.com/adafruit/Adafruit_ILI9340](https://github.com/adafruit/Adafruit_ILI9340)
+  See `third_party_licenses/Adafruit-ILI9340-MIT.txt`.
 
 - **Adafruit GFX Library**, licensed under the **BSD 3-Clause License**.  
   See `third_party_licenses/Adafruit-GFX-BSD.txt`.
@@ -66,7 +66,7 @@ It also includes third-party components with the following licenses:
   See `third_party_licenses/Neo둥근모-OFL.txt`.
 
 - Parts of the LCD driver were originally influenced by a now-deleted Pico + ILI9341 reference by `shawnhyam`.  
-  All code has since been rewritten and no original code remains.
+  Sadly the original repository has been deleted.
 
 - The Raspberry Pi logo and the name "Raspberry Pi" are trademarks of Raspberry Pi Ltd.  
   This project is an independent, non-commercial work and is not affiliated with or endorsed by Raspberry Pi Ltd.
