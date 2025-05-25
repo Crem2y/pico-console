@@ -42,6 +42,14 @@ $ git clone --recurse-submodules https://github.com/Crem2y/pico-console.git
 Back of the console
 ![Back view](doc/back.jpg)
 
+## Schematics
+
+![schematic_1](doc/schematic_1.png)
+
+![schematic_2](doc/schematic_2.png)
+
+![schematic_3](doc/schematic_3.png)
+
 ---
 
 ## License
