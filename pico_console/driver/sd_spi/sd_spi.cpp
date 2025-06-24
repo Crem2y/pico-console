@@ -166,7 +166,7 @@ int sdSpi::card_deinit(void) {
   spi_init(_spi, SD_SPI_FAST);
 
   this->info.is_inited = false;
-  this->info.type == SD_TYPE_UNKNOWN;
+  this->info.type = SD_TYPE_UNKNOWN;
   return 0;
 }
 
