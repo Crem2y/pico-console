@@ -73,7 +73,7 @@ void soundSystem::init_timer(void) {
   add_repeating_timer_us(-(1000000/WAVE_FREQ), timer_callback_sound, NULL, &timer_delay);
 }
 
-void soundSystem::menual_beep(uint32_t ms) {
+void soundSystem::manual_beep(uint32_t ms) {
 
   for(int i=0; i<(ms); i++) {
     dac_output(0, 0);
@@ -83,7 +83,7 @@ void soundSystem::menual_beep(uint32_t ms) {
   }
 }
 
-void soundSystem::menual_mute(void) {
+void soundSystem::manual_mute(void) {
   dac_mute();
 }
 

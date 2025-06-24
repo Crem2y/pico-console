@@ -11,7 +11,7 @@ class irRemote {
 
   void init(void);
 
-  void menual_on(void);
+  void manual_on(void);
   void menual_off(void);
 
   void send_nec_bit(uint8_t data);

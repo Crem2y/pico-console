@@ -609,7 +609,7 @@ void menu_ir_test(void) {
       Ir.send_nec_format(true, 0x00, 0xff, 0x4d); // 우
       sleep_ms(500);
     } else {
-      Ir.menual_off();
+      Ir.manual_off();
     } 
 
     if(Key.key_flags.select && Key.key_flags.start) {

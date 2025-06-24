@@ -24,12 +24,12 @@ void irRemote::init(void) {
   pwm_set_enabled(slice_num, true);
 }
 
-void irRemote::menual_on(void) {
+void irRemote::manual_on(void) {
   //gpio_put(_ir_pin, 1);
   pwm_set_chan_level(slice_num, ir_pwm_ch, ir_pwm_top);
 }
 
-void irRemote::menual_off(void) {
+void irRemote::manual_off(void) {
   //gpio_put(_ir_pin, 0);
   pwm_set_chan_level(slice_num, ir_pwm_ch, 0);
 }
