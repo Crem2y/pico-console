@@ -2,6 +2,8 @@
 
 ![Front view](doc/front.jpg)
 
+[![Build test](https://github.com/Crem2y/pico-console/actions/workflows/build_test.yml/badge.svg)](https://github.com/Crem2y/pico-console/actions/workflows/build_test.yml)
+
 A self-made game console built on the RP2040 microcontroller.  
 Runs on bare metal with custom drivers for audio, input, and more.  
 Designed for learning and experimenting with embedded systems.
