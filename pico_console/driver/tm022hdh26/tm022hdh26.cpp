@@ -13,6 +13,7 @@
 // https://github.com/shawnhyam/pico/blob/main/ili9341/ili9341.c
 
 #include "tm022hdh26.hpp"
+#include "malloc.h"
 
 static inline void cs_select(uint cs_pin) {
     asm volatile("nop \n nop");
@@ -219,6 +220,9 @@ void tm022hdh26::begin(void) {
   pwm_set_clkdiv(slice_num, SYS_CLK_KHZ * 1000/LCD_BACKLIGHT_MAX);
   pwm_set_wrap(slice_num, 1000);
   pwm_set_enabled(slice_num, true);
+
+  draw_buffer = (uint16_t *)malloc(sizeof(uint16_t) * ILI9340_TFTWIDTH * ILI9340_TFTHEIGHT);
+  _draw_mode = 0;
 }
 
 
@@ -242,27 +246,34 @@ void tm022hdh26::setAddrWindow(uint16_t x0, uint16_t y0, uint16_t x1,
 
 
 void tm022hdh26::pushColor(uint16_t color) {
+  if(_draw_mode == 0) {
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
 
-  cs_select(_pin_cs);
-  gpio_put(_pin_dc, 1);
+    spiwrite16(color);
 
-  spiwrite16(color);
+    cs_deselect(_pin_cs);
+  } else {
 
-  cs_deselect(_pin_cs);
+  }
 }
 
 void tm022hdh26::drawPixel(int16_t x, int16_t y, uint16_t color) {
 
   if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
 
-  setAddrWindow(x,y,x+1,y+1);
+  if(_draw_mode == 0) {
+    setAddrWindow(x,y,x+1,y+1);
 
-  cs_select(_pin_cs);
-  gpio_put(_pin_dc, 1);
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
 
-  spiwrite16(color);
+    spiwrite16(color);
 
-  cs_deselect(_pin_cs);
+    cs_deselect(_pin_cs);
+  } else {
+    draw_buffer[x + (y * ILI9340_TFTWIDTH)] = color;
+  }
 }
 
 
@@ -271,20 +282,25 @@ void tm022hdh26::drawFastVLine(int16_t x, int16_t y, int16_t h,
 
   // Rudimentary clipping
   if((x >= _width) || (y >= _height)) return;
+  if((y+h-1) >= _height) h = _height-y;
 
-  if((y+h-1) >= _height) 
-    h = _height-y;
+  if(_draw_mode == 0) {
+    setAddrWindow(x, y, x, y+h-1);
 
-  setAddrWindow(x, y, x, y+h-1);
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
+    
+    while (h--) {
+      spiwrite16(color);
+    }
 
-  cs_select(_pin_cs);
-  gpio_put(_pin_dc, 1);
-  
-  while (h--) {
-    spiwrite16(color);
+    cs_deselect(_pin_cs);
+  } else {
+    // draw to buffer
+    for(int i = 0; i < h; i++) {
+      draw_buffer[x + ((y + i) * ILI9340_TFTWIDTH)] = color;
+    }
   }
-
-  cs_deselect(_pin_cs);
 }
 
 
@@ -294,18 +310,31 @@ void tm022hdh26::drawFastHLine(int16_t x, int16_t y, int16_t w,
   // Rudimentary clipping
   if((x >= _width) || (y >= _height)) return;
   if((x+w-1) >= _width)  w = _width-x;
-  setAddrWindow(x, y, x+w-1, y);
 
-  cs_select(_pin_cs);
-  gpio_put(_pin_dc, 1);
-  while (w--) {
-    spiwrite16(color);
+  if(_draw_mode == 0) {
+    setAddrWindow(x, y, x+w-1, y);
+
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
+    while (w--) {
+      spiwrite16(color);
+    }
+    cs_deselect(_pin_cs);
+  } else {
+    // draw to buffer
+    for(int i = 0; i < w; i++) {
+      draw_buffer[(x + i) + (y * ILI9340_TFTWIDTH)] = color;
+    }
   }
-  cs_deselect(_pin_cs);
 }
 
 void tm022hdh26::fillScreen(uint16_t color) {
-  fillRect(0, 0,  _width, _height, color);
+  if(_draw_mode == 0) {
+    fillRect(0, 0,  _width, _height, color);
+  } else {
+    // fill the buffer
+    memset(draw_buffer, color, sizeof(uint16_t) * ILI9340_TFTWIDTH * ILI9340_TFTHEIGHT);
+  }
 }
 
 // fill a rectangle
@@ -317,17 +346,60 @@ void tm022hdh26::fillRect(int16_t x, int16_t y, int16_t w, int16_t h,
   if((x + w - 1) >= _width)  w = _width  - x;
   if((y + h - 1) >= _height) h = _height - y;
 
-  setAddrWindow(x, y, x+w-1, y+h-1);
+  if(_draw_mode == 0) {
+    setAddrWindow(x, y, x+w-1, y+h-1);
 
-  cs_select(_pin_cs);
-  gpio_put(_pin_dc, 1);
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
 
-  for(y=h; y>0; y--) {
-    for(x=w; x>0; x--) {
-      spiwrite16(color);
+    for(y=h; y>0; y--) {
+      for(x=w; x>0; x--) {
+        spiwrite16(color);
+      }
+    }
+    cs_deselect(_pin_cs);
+  } else {
+    // fill the buffer
+    for(int i = 0; i < w; i++) {
+      for(int j = 0; j < h; j++) {
+        draw_buffer[(x + i) + ((y + j) * ILI9340_TFTWIDTH)] = color;
+      }
     }
   }
-  cs_deselect(_pin_cs);
+}
+
+void tm022hdh26::draw_screen(void) {
+  if(_draw_mode == 0) {
+  } else {
+/*
+    // draw the buffer
+    cs_select(_pin_cs);
+    setAddrWindow(0, 0, ILI9340_TFTWIDTH - 1, ILI9340_TFTHEIGHT - 1);
+    gpio_put(_pin_dc, 1);
+
+    for(int y = 0; y < ILI9340_TFTHEIGHT; y++) {
+      for(int x = 0; x < ILI9340_TFTWIDTH; x++) {
+        spiwrite16(draw_buffer[x + (y * ILI9340_TFTWIDTH)]);
+      }
+    }
+
+    cs_deselect(_pin_cs);
+*/
+    //setAddrWindow(0, 0, ILI9340_TFTHEIGHT - 1, ILI9340_TFTWIDTH - 1);
+    setAddrWindow(0, 0, ILI9340_TFTWIDTH - 1, ILI9340_TFTHEIGHT - 1);
+
+    cs_select(_pin_cs);
+    gpio_put(_pin_dc, 1);
+/*
+    for(int y=ILI9340_TFTHEIGHT; y>0; y--) {
+      for(int x=ILI9340_TFTWIDTH; x>0; x--) {
+        spiwrite16(0xFFFF);
+      }
+    }
+*/
+    spi_write_blocking(_spi, (uint8_t *)draw_buffer, sizeof(uint16_t) * ILI9340_TFTWIDTH * ILI9340_TFTHEIGHT);
+    cs_deselect(_pin_cs);
+  }
 }
 
 

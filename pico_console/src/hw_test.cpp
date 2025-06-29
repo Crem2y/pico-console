@@ -119,12 +119,16 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("core freq = %ld hz\n", SYS_CLK_KHZ * 1000);
   // hardware initalized
 
+  Lcd.draw_screen();
+
   // boot sequence start
   Lcd.setTextSize(1);
   Lcd.setCursor(128,200);
   Lcd.print_5x8("press START");
   Lcd.setCursor(64,210);
   Lcd.print_5x8("press SELECT+START to quiet boot");
+  Lcd.draw_screen();
+
   Key.wait_until(KEY_START, true);
 
   LOG_PRINTF("code check..\n");
@@ -208,6 +212,8 @@ main_menu_loop:
     Lcd.print_5x8("press up/down to move cursor");
     Lcd.setCursor(0,232);
     Lcd.print_5x8("press A or START to select");
+
+    Key.wait_until(KEY_START, true);
 
     while(1) {
       sleep_ms(100);

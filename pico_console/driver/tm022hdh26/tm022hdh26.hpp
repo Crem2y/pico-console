@@ -138,8 +138,11 @@ class tm022hdh26 : public Adafruit_GFX {
 
   void set_bright(uint32_t bright);
   uint32_t get_bright(void);
+  void draw_screen(void);
 
 private:
+  uint8_t  _draw_mode;
+  uint16_t  *draw_buffer;
   uint8_t  tabcolor;
   spi_inst_t* _spi;
   int _pin_tx, _pin_rx, _pin_sck;
