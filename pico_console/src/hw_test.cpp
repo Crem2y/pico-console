@@ -30,11 +30,11 @@
 #include "pico_w_wifi.hpp"
 
 // middlewares
-#include "sound_system.hpp"
+//#include "sound_system.hpp"
 
 // hw lib init
 ledStatus Led = ledStatus(8,9,10,11);
-mcp4725 Dac = mcp4725(i2c0, 5,4);
+mcp4725 Dac = mcp4725(i2c0, 5,4, &dac_data);
 soundSystem Sound = soundSystem();
 tm022hdh26 Lcd = tm022hdh26(spi0, 19,16,18, 13,14,15,12);
 pca9554 Key = pca9554(i2c1, 3,2);
@@ -45,6 +45,7 @@ usbSw Swusb = usbSw(6,7);
 //picoWBt Bt = picoWBt();
 picoWWifi Wifi = picoWWifi();
 
+/*
 //////// dac value ////////
 #define ME(op,ch,wav,vol,oc,fre)  (uint32_t)((op<<24)+(ch<<20)+(wav<<16)+(vol<<8)+(oc<<4)+(fre))
 
@@ -64,21 +65,10 @@ const uint32_t Music_Test[] = {
   ME(OP_NONE, 3, W_TRIN, 255, 5, S_C), ME(OP_DELAY1, 0, 0, 0, 0, 0),
   ME(OP_DELAY4, 0, 0, 0, 0, 0), ME(OP_STOP, 0, 0, 0, 0, 0)
 };
-
+*/
 void core1_entry();
 
 //////// function ////////
-void dac_output_wrapper(uint16_t l, uint16_t r) {
-    Dac.output(l, r);
-}
-
-void dac_mute_wrapper() {
-    Dac.mute();
-}
-
-void dac_unmute_wrapper() {
-    Dac.unmute();
-}
 
 int main() { // uses core 0 to sub core
   uartLog_init(uart0, 0, 1, 115200);
@@ -103,8 +93,7 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("LCD ok\n");
   Dac.init();
   LOG_PRINTF("DAC ok\n");
-  Sound.init(dac_output_wrapper, dac_mute_wrapper, dac_unmute_wrapper);
-  Sound.init_timer();
+  Sound.init(&dac_data.sound_data);
   Key.init();
   LOG_PRINTF("KEY ok\n");
   Bat.init();
@@ -127,14 +116,17 @@ int main() { // uses core 0 to sub core
   Lcd.print_5x8("press SELECT+START to quiet boot");
   Key.wait_until(KEY_START, true);
 
+  //test
+  Sound.beep(100);
+
   LOG_PRINTF("code check..\n");
   for(int i=0; i<10; i++) {
     //printf("%d %d...\n", Key.key_log[i+2], conami_code[9-i]);
     if(Key.key_log[i+1] != conami_code[9-i]) break;
     if(i == 9) {
       LOG_PRINTF("code activated!\n");
-      Sound.set_waning(32);
-      Sound.play_music_ex(Music_Test, 10, 100);
+//      Sound.set_waning(32);
+//      Sound.play_music_ex(Music_Test, 10, 100);
     }
   }
 
@@ -144,10 +136,10 @@ int main() { // uses core 0 to sub core
   sleep_ms(100);
   Key.get_btn_data();
   if(~Key.key_pressed & (1 << KEY_SELECT)) {
-    Sound.set_waning(32);
-    Sound.play_music_ex(Music_Boot_ex, 10, 100);
+//    Sound.set_waning(32);
+//    Sound.play_music_ex(Music_Boot_ex, 10, 100);
   }
-  Sound.set_mute(true);
+//  Sound.set_mute(true);
   // boot sequence end
   
   while (true) {
@@ -533,11 +525,14 @@ void menu_dac_test(void) {
   Lcd.print_5x8("press A to play sound");
 
   while(1) {
-    sleep_ms(100);
+    sleep_ms(10);
     
     if(Key.key_flags.a) {
-      Sound.play_music_ex(Music_Test, 10, 100);
-      Sound.set_mute(true);
+//      Sound.play_music_ex(Music_Test, 10, 100);
+//      Sound.set_mute(true);
+
+      //test beep
+      Sound.beep(100);
     }
 
     if(Key.key_flags.select && Key.key_flags.start) {
