@@ -1,0 +1,23 @@
+message(STATUS "building drivers...")
+
+add_subdirectory(uart_log)
+add_subdirectory(led_status)
+add_subdirectory(li_battery)
+add_subdirectory(mcp4725)
+add_subdirectory(pca9554)
+add_subdirectory(tm022hdh26)
+add_subdirectory(sd_spi)
+
+add_library(driver INTERFACE)
+
+target_link_libraries(driver INTERFACE
+  uart_log
+  led_status
+  li_battery
+  mcp4725
+  pca9554
+  tm022hdh26
+  sd_spi
+)
+
+message(STATUS "building drivers completed!")
