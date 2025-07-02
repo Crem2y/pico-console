@@ -503,7 +503,7 @@ size_t Adafruit_GFX::write_16(const wchar_t C) {
       drawChar_E_16(cursor_x, cursor_y, '?', textcolor, textbgcolor);
       cursor_x += 8;
     }
-    if (wrap && (cursor_x > (_width - 16))) {
+    if (wrap && (cursor_x > (_width - 8))) {
       cursor_y += 16;
       cursor_x = 0;
     }

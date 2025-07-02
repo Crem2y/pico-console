@@ -56,6 +56,26 @@ const uint32_t Music_Test[] = {
   ME(OP_DELAY4, 0, 0, 0, 0, 0), ME(OP_STOP, 0, 0, 0, 0, 0)
 };
 
+#define TABLE_LENGTH 128
+const uint16_t Music_Table[4 * TABLE_LENGTH] = {
+  0x0000, 0x0001, 0x0002, 0x0003,
+  0x0004, 0x0005, 0x0006, 0x0007,
+  0x0008, 0x0009, 0x000A, 0x000B,
+  0x000C, 0x000D, 0x000E, 0x000F,
+  0x0010, 0x0011, 0x0012, 0x0013,
+  0x0014, 0x0015, 0x0016, 0x0017,
+  0x0018, 0x0019, 0x001A, 0x001B,
+  0x001C, 0x001D, 0x001E, 0x001F,
+  0x0020, 0x0021, 0x0022, 0x0023,
+  0x0024, 0x0025, 0x0026, 0x0027,
+  0x0028, 0x0029, 0x002A, 0x002B,
+  0x002C, 0x002D, 0x002E, 0x002F,
+  0x0030, 0x0031, 0x0032, 0x0033,
+  0x0034, 0x0035, 0x0036, 0x0037,
+  0x0038, 0x0039, 0x003A, 0x003B,
+  0x003C, 0x003D, 0x003E, 0x003F,
+};
+
 void core1_entry();
 void battery_task(void);
 void button_task(void);
@@ -174,6 +194,39 @@ int main() { // uses core 0 to sub core
   return 0;
 }
 
+void update_screen(uint32_t start_pos) {
+  Lcd.setTextColor(0xFFFF, 0x0000);
+
+  for(int i=0; i<13; i++) {
+    char string_buf[64];
+    int pos = start_pos + i;
+
+    if(pos < TABLE_LENGTH) {
+      sprintf(string_buf, "%04d  0x%04X 0x%04X 0x%04X 0x%04X",
+        pos,
+        Music_Table[pos * 4],
+        Music_Table[(pos * 4) + 1],
+        Music_Table[(pos * 4) + 2],
+        Music_Table[(pos * 4) + 3]);
+    } else {
+      sprintf(string_buf, "                                 ");
+    }
+    Lcd.setCursor(0, 32 + (i * 16));
+    Lcd.print_16(string_buf);
+  }
+}
+
+void update_cursor(uint32_t cursor_x, uint32_t cursor_y, uint32_t cursor_x_prv, uint32_t cursor_y_prv) {
+  uint32_t x_pos = (cursor_x_prv / 4) * 7 + 8 + (cursor_x_prv % 4);
+  Lcd.setTextColor(0xFFFF, 0x0000);
+  Lcd.setCursor(x_pos * 8, 32);
+  Lcd.print_16("-");
+  x_pos = (cursor_x / 4) * 7 + 8 + (cursor_x % 4);
+  Lcd.setTextColor(0x0000, 0xFFFF);
+  Lcd.setCursor(x_pos * 8, 32);
+  Lcd.print_16("-");
+}
+
 void core1_entry() { // uses core 1 to main core
   
   multicore_fifo_pop_blocking(); // wait until boot process is done
@@ -188,20 +241,95 @@ void core1_entry() { // uses core 1 to main core
   }
 
   char string_buf[32];
+  uint32_t cursor_x = 0;
+  uint32_t cursor_y = 0;
+  uint32_t cursor_x_prv = 0;
+  uint32_t cursor_y_prv = 0;
 
   Lcd.fillScreen(0x0000);
-  Lcd.setCursor(80,120);
   Lcd.setTextColor(0xFFFF, 0x0000);
-  Lcd.setTextSize(2);
-  Lcd.print_5x8("Now Loading...");
+  Lcd.setTextSize(1);
+  //Lcd.setCursor(100,120);
+  //Lcd.print_16("Now Loading...");
+  
+  Lcd.setCursor(0,0);
+  Lcd.print_16("d:1000ms");
+
+  Lcd.setCursor(140,0);
+  Lcd.print_16("temp");
+
+  Lcd.setCursor(0,16);
+  Lcd.print_16("count   ch1    ch2    ch3    ch4");
+
+  update_screen(cursor_y);
+  update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
 
   while (1) {
     sleep_ms(100);
-    Bat.get_level();
-    Lcd.setTextSize(1);
-    sprintf(string_buf, "BAT:% 3.1f%%", Bat.level);
-    Lcd.setCursor(250,0);
-    Lcd.print_5x8(string_buf);
+    
+    // battery check
+    Lcd.setTextColor(0xFFFF, 0x0000);
+    sprintf(string_buf, "B:%3d%%", (int)Bat.level);
+    Lcd.setCursor(270,0);
+    Lcd.print_16(string_buf);
+
+    if (Key.key_pressed & CODE_KEY_START) {
+      Sound.play_music_ex(Music_Boot_ex, 10, 100);
+    } else if (Key.key_pressed & CODE_KEY_SELECT) {
+    } else if (Key.key_pressed & CODE_KEY_S1_UP) {
+      if(cursor_y > 0) {
+        cursor_y--;
+      }
+      update_screen(cursor_y);
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+      cursor_y_prv = cursor_y;
+    } else if (Key.key_pressed & CODE_KEY_S1_DOWN) {
+      if(cursor_y < TABLE_LENGTH - 1) {
+        cursor_y++;
+      }
+      update_screen(cursor_y);
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+      cursor_y_prv = cursor_y;
+    } else if (Key.key_pressed & CODE_KEY_S1_LEFT) {
+      if(cursor_x > 0) {
+        cursor_x--;
+      }
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+      cursor_x_prv = cursor_x;
+    } else if (Key.key_pressed & CODE_KEY_S1_RIGHT) {
+      if(cursor_x < 16) {
+        cursor_x++;
+      }
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+      cursor_x_prv = cursor_x;
+    } else if (Key.key_pressed & CODE_KEY_UP) {
+      if(cursor_y > 8) {
+        cursor_y -= 8;
+      } else if (cursor_y > 0) {
+        cursor_y = 0;
+      }
+      update_screen(cursor_y);
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+      cursor_y_prv = cursor_y;
+    } else if (Key.key_pressed & CODE_KEY_DOWN) {
+      if(cursor_y < TABLE_LENGTH - 9) {
+        cursor_y += 8;
+      } else if (cursor_y < TABLE_LENGTH) {
+        cursor_y = TABLE_LENGTH - 1;
+      }
+      update_screen(cursor_y);
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
+    } else if (Key.key_pressed & CODE_KEY_LEFT) {
+    } else if (Key.key_pressed & CODE_KEY_RIGHT) {
+    } else if (Key.key_pressed & CODE_KEY_S2_UP) {
+    } else if (Key.key_pressed & CODE_KEY_S2_DOWN) {
+    } else if (Key.key_pressed & CODE_KEY_S2_LEFT) {
+    } else if (Key.key_pressed & CODE_KEY_S2_RIGHT) {
+    } else if (Key.key_pressed & CODE_KEY_A) {
+    } else if (Key.key_pressed & CODE_KEY_B) {
+    } else if (Key.key_pressed & CODE_KEY_X) {
+    } else if (Key.key_pressed & CODE_KEY_Y) {
+    }
   }
 }
 
