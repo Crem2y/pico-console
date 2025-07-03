@@ -76,6 +76,8 @@ const uint16_t Music_Table[4 * TABLE_LENGTH] = {
   0x003C, 0x003D, 0x003E, 0x003F,
 };
 
+uint16_t music_delay = 1000; // default delay time in ms
+
 void core1_entry();
 void battery_task(void);
 void button_task(void);
@@ -161,14 +163,12 @@ int main() { // uses core 0 to sub core
       } else if (Lcd.get_bright() > 50) {
         Lcd.set_bright(Lcd.get_bright() - 50);
       }
-      LOG_PRINTF("bright = %d\n", Lcd.get_bright());
     } else if (Key.key_pressed & CODE_KEY_ZR) {
       if (Lcd.get_bright() < 0) {
         Lcd.set_bright(0);
       } else if (Lcd.get_bright() < LCD_BACKLIGHT_MAX) {
         Lcd.set_bright(Lcd.get_bright() + 50);
       }
-      LOG_PRINTF("bright = %d\n", Lcd.get_bright());
     }
   }
   
@@ -240,6 +240,13 @@ void update_cursor(uint32_t cursor_x, uint32_t cursor_y, uint32_t cursor_x_prv, 
   Lcd.print_16(string_buf);
 }
 
+void update_delay(void) {
+  char string_buf[16];
+  sprintf(string_buf, "d:%dms  ", music_delay);
+  Lcd.setCursor(0,0);
+  Lcd.print_16(string_buf);
+}
+
 void core1_entry() { // uses core 1 to main core
   
   multicore_fifo_pop_blocking(); // wait until boot process is done
@@ -262,9 +269,8 @@ void core1_entry() { // uses core 1 to main core
   Lcd.fillScreen(0x0000);
   Lcd.setTextColor(0xFFFF, 0x0000);
   Lcd.setTextSize(1);
-  
-  Lcd.setCursor(0,0);
-  Lcd.print_16("d:1000ms");
+
+  update_delay();
 
   Lcd.setCursor(140,0);
   Lcd.print_16("temp");
@@ -336,13 +342,49 @@ void core1_entry() { // uses core 1 to main core
     } else if (Key.key_pressed & CODE_KEY_LEFT) {
     } else if (Key.key_pressed & CODE_KEY_RIGHT) {
     } else if (Key.key_pressed & CODE_KEY_S2_UP) {
+      if (music_delay < 1000) { // limit max delay to 1 seconds
+        music_delay += 1;
+      } else {
+        music_delay = 1000;
+      }
+      update_delay();
     } else if (Key.key_pressed & CODE_KEY_S2_DOWN) {
+      if (music_delay > 0) {
+        music_delay -= 1;
+      } else {
+        music_delay = 0;
+      }
+      update_delay();
     } else if (Key.key_pressed & CODE_KEY_S2_LEFT) {
+      if (music_delay > 10) {
+        music_delay -= 10;
+      } else {
+        music_delay = 0;
+      }
+      update_delay();
     } else if (Key.key_pressed & CODE_KEY_S2_RIGHT) {
+      if (music_delay < 1000) { // limit max delay to 1 seconds
+        music_delay += 10;
+      } else {
+        music_delay = 1000;
+      }
+      update_delay();
     } else if (Key.key_pressed & CODE_KEY_A) {
     } else if (Key.key_pressed & CODE_KEY_B) {
     } else if (Key.key_pressed & CODE_KEY_X) {
     } else if (Key.key_pressed & CODE_KEY_Y) {
+    } else if (Key.key_pressed & CODE_KEY_ZL) {
+      if (Lcd.get_bright() < 50) {
+        Lcd.set_bright(0);
+      } else if (Lcd.get_bright() > 50) {
+        Lcd.set_bright(Lcd.get_bright() - 50);
+      }
+    } else if (Key.key_pressed & CODE_KEY_ZR) {
+      if (Lcd.get_bright() < 0) {
+        Lcd.set_bright(0);
+      } else if (Lcd.get_bright() < LCD_BACKLIGHT_MAX) {
+        Lcd.set_bright(Lcd.get_bright() + 50);
+      }
     }
   }
 }
