@@ -51,6 +51,8 @@ enum op_code {
   OP_STOP = 0xFF
 };
 
+extern dac_set_t dac_ch[];
+
 class soundSystem {
   public:
     soundSystem(void);

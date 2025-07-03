@@ -217,14 +217,27 @@ void update_screen(uint32_t start_pos) {
 }
 
 void update_cursor(uint32_t cursor_x, uint32_t cursor_y, uint32_t cursor_x_prv, uint32_t cursor_y_prv) {
-  uint32_t x_pos = (cursor_x_prv / 4) * 7 + 8 + (cursor_x_prv % 4);
+  char string_buf[4];
+  uint32_t x_pos;
+  uint16_t temp_sound;
+
+  x_pos = (cursor_x_prv / 4) * 7 + 8 + (cursor_x_prv % 4);
+  temp_sound = Music_Table[cursor_y * 4 + (cursor_x_prv / 4)];
+  temp_sound >>= (4 * (3 - (cursor_x_prv % 4)));
+  temp_sound &= 0x000F;
   Lcd.setTextColor(0xFFFF, 0x0000);
   Lcd.setCursor(x_pos * 8, 32);
-  Lcd.print_16("-");
+  sprintf(string_buf, "%1X", temp_sound);
+  Lcd.print_16(string_buf);
+  
   x_pos = (cursor_x / 4) * 7 + 8 + (cursor_x % 4);
+  temp_sound = Music_Table[cursor_y * 4 + (cursor_x / 4)];
+  temp_sound >>= (4 * (3 - (cursor_x % 4)));
+  temp_sound &= 0x000F;
   Lcd.setTextColor(0x0000, 0xFFFF);
   Lcd.setCursor(x_pos * 8, 32);
-  Lcd.print_16("-");
+  sprintf(string_buf, "%1X", temp_sound);
+  Lcd.print_16(string_buf);
 }
 
 void core1_entry() { // uses core 1 to main core
@@ -249,8 +262,6 @@ void core1_entry() { // uses core 1 to main core
   Lcd.fillScreen(0x0000);
   Lcd.setTextColor(0xFFFF, 0x0000);
   Lcd.setTextSize(1);
-  //Lcd.setCursor(100,120);
-  //Lcd.print_16("Now Loading...");
   
   Lcd.setCursor(0,0);
   Lcd.print_16("d:1000ms");
@@ -274,8 +285,11 @@ void core1_entry() { // uses core 1 to main core
     Lcd.print_16(string_buf);
 
     if (Key.key_pressed & CODE_KEY_START) {
-      Sound.play_music_ex(Music_Boot_ex, 10, 100);
+      Sound.play_music_ex(Music_Test, 10, 100);
     } else if (Key.key_pressed & CODE_KEY_SELECT) {
+      uint16_t temp_sound[USING_CH];
+      temp_sound[0] = Music_Table[cursor_y * 4 + (cursor_x / 4)];
+      Sound.play_sound(&temp_sound);
     } else if (Key.key_pressed & CODE_KEY_S1_UP) {
       if(cursor_y > 0) {
         cursor_y--;
@@ -297,7 +311,7 @@ void core1_entry() { // uses core 1 to main core
       update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
       cursor_x_prv = cursor_x;
     } else if (Key.key_pressed & CODE_KEY_S1_RIGHT) {
-      if(cursor_x < 16) {
+      if(cursor_x < 15) {
         cursor_x++;
       }
       update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
@@ -353,5 +367,9 @@ void led_task(void) {
   static uint32_t last_led_check = 0;
   if (time_us_64() - last_led_check > 1000) { // check every 1ms
     last_led_check = time_us_64();
+    Led.set_bright_float(1, dac_ch[0].volume);
+    Led.set_bright_float(2, dac_ch[1].volume);
+    Led.set_bright_float(3, dac_ch[2].volume);
+    Led.set_bright_float(4, dac_ch[3].volume);
   }
 }
