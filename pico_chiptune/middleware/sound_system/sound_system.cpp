@@ -44,8 +44,8 @@ bool soundSystem::timer_callback_sound(struct repeating_timer *t) {
 }
 
 int64_t soundSystem::delay_callback(alarm_id_t id, void *user_data) {
-    delay_ended = true;
-    return 0;
+  delay_ended = true;
+  return 0;
 }
 
 soundSystem::soundSystem(void) {
@@ -148,28 +148,22 @@ void soundSystem::channel_stop(uint8_t channel) {
   dac_ch[channel].wave = DAC_wave_none;
 }
 
-void soundSystem::play_sound(uint16_t (*music_table)[USING_CH]) {
-    
-  unsigned int music_temp;
-  unsigned int music_wav;
-  unsigned int music_vol;
-  unsigned int music_freq1;
-  unsigned int music_freq2;
+void soundSystem::play_sound(music_table_t *music_table, uint8_t channels) {
+
+  music_table_t music_temp;
+  uint16_t music_wav;
+  uint16_t music_vol;
+  uint16_t music_freq1;
+  uint16_t music_freq2;
   const float* sound_wave;
   
-  unsigned int ch_start;
-  unsigned int ch_end;
-
-  ch_start = 0;
-  ch_end = 4;
-  
-  for(int i=ch_start; i<ch_end; i++) {
-    music_temp = music_table[music_table_pos][i];
+  for(int i=0; i<channels; i++) {
+    music_temp = music_table[i];
     
-    music_wav   = music_temp >> 12;
-    music_vol   = (music_temp >> 8) & 0x000F;
-    music_freq1 = (music_temp >> 4) & 0x000F;
-    music_freq2 = music_temp & 0x000F;
+    music_wav   = music_temp.wave;
+    music_vol   = music_temp.volume;
+    music_freq1 = music_temp.freq1;
+    music_freq2 = music_temp.freq2;
     
     switch(music_wav) {
       case W_NONE:
@@ -201,14 +195,12 @@ void soundSystem::play_sound(uint16_t (*music_table)[USING_CH]) {
   }
 }
 
-void soundSystem::play_music(uint16_t (*music_table)[USING_CH], uint32_t music_length, uint32_t music_delay) {
+void soundSystem::play_music(music_table_t *music_table, uint8_t channels, uint32_t music_length, uint32_t music_delay) {
 
   for(int i=0; i<music_length; i++) {
-    music_table_pos = i;
-    play_sound(music_table);
+    play_sound(&music_table[i * channels], channels);
     delay(music_delay);
   }
-  music_table_pos = 0;
 }
 
 void soundSystem::play_sound_ex(const uint32_t music_table) {

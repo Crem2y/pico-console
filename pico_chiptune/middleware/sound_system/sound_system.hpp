@@ -19,6 +19,17 @@ volatile typedef struct _dac_set_t {
   const float*  wave;       // dac wave (pointer)
 } dac_set_t;
 
+
+typedef union {
+  uint16_t value;
+  struct {
+    uint8_t freq2   : 4;
+    uint8_t freq1   : 4;
+    uint8_t volume  : 4;
+    uint8_t wave    : 4;
+  };
+} music_table_t;
+
 enum wave {
   W_NONE = 0,
   W_PS25,
@@ -72,8 +83,8 @@ class soundSystem {
     void channel_wave(uint8_t channel, float freq, uint8_t volume, const float* wave);
     void channel_stop(uint8_t channel);
 
-    void play_sound(uint16_t (*music_table)[USING_CH]);
-    void play_music(uint16_t (*music_table)[USING_CH], uint32_t music_length, uint32_t music_delay);
+    void play_sound(music_table_t *music_table, uint8_t channels);
+    void play_music(music_table_t *music_table, uint8_t channels, uint32_t music_length, uint32_t music_delay);
 
     void play_sound_ex(const uint32_t music_table);
     void play_music_ex(const uint32_t *music_table, uint32_t music_length, uint32_t music_delay);

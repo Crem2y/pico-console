@@ -57,7 +57,7 @@ const uint32_t Music_Test[] = {
 };
 
 #define TABLE_LENGTH 128
-const uint16_t Music_Table[4 * TABLE_LENGTH] = {
+music_table_t Music_Table[4 * TABLE_LENGTH] = {
   0x0000, 0x0001, 0x0002, 0x0003,
   0x0004, 0x0005, 0x0006, 0x0007,
   0x0008, 0x0009, 0x000A, 0x000B,
@@ -76,7 +76,7 @@ const uint16_t Music_Table[4 * TABLE_LENGTH] = {
   0x003C, 0x003D, 0x003E, 0x003F,
 };
 
-uint16_t music_delay = 1000; // default delay time in ms
+uint16_t music_delay = 100; // default delay time in ms
 
 void core1_entry();
 void battery_task(void);
@@ -204,10 +204,10 @@ void update_screen(uint32_t start_pos) {
     if(pos < TABLE_LENGTH) {
       sprintf(string_buf, "%04d  0x%04X 0x%04X 0x%04X 0x%04X",
         pos,
-        Music_Table[pos * 4],
-        Music_Table[(pos * 4) + 1],
-        Music_Table[(pos * 4) + 2],
-        Music_Table[(pos * 4) + 3]);
+        Music_Table[pos * 4].value,
+        Music_Table[(pos * 4) + 1].value,
+        Music_Table[(pos * 4) + 2].value,
+        Music_Table[(pos * 4) + 3].value);
     } else {
       sprintf(string_buf, "                                 ");
     }
@@ -222,7 +222,7 @@ void update_cursor(uint32_t cursor_x, uint32_t cursor_y, uint32_t cursor_x_prv, 
   uint16_t temp_sound;
 
   x_pos = (cursor_x_prv / 4) * 7 + 8 + (cursor_x_prv % 4);
-  temp_sound = Music_Table[cursor_y * 4 + (cursor_x_prv / 4)];
+  temp_sound = Music_Table[cursor_y * 4 + (cursor_x_prv / 4)].value;
   temp_sound >>= (4 * (3 - (cursor_x_prv % 4)));
   temp_sound &= 0x000F;
   Lcd.setTextColor(0xFFFF, 0x0000);
@@ -231,7 +231,7 @@ void update_cursor(uint32_t cursor_x, uint32_t cursor_y, uint32_t cursor_x_prv, 
   Lcd.print_16(string_buf);
   
   x_pos = (cursor_x / 4) * 7 + 8 + (cursor_x % 4);
-  temp_sound = Music_Table[cursor_y * 4 + (cursor_x / 4)];
+  temp_sound = Music_Table[cursor_y * 4 + (cursor_x / 4)].value;
   temp_sound >>= (4 * (3 - (cursor_x % 4)));
   temp_sound &= 0x000F;
   Lcd.setTextColor(0x0000, 0xFFFF);
@@ -291,11 +291,12 @@ void core1_entry() { // uses core 1 to main core
     Lcd.print_16(string_buf);
 
     if (Key.key_pressed & CODE_KEY_START) {
-      Sound.play_music_ex(Music_Test, 10, 100);
+      Sound.set_mute(false);
+      Sound.play_music(Music_Table, USING_CH, TABLE_LENGTH, music_delay);
     } else if (Key.key_pressed & CODE_KEY_SELECT) {
       uint16_t temp_sound[USING_CH];
-      temp_sound[0] = Music_Table[cursor_y * 4 + (cursor_x / 4)];
-      Sound.play_sound(&temp_sound);
+      Sound.set_mute(false);
+      Sound.play_sound(&Music_Table[cursor_y * USING_CH], USING_CH);
     } else if (Key.key_pressed & CODE_KEY_S1_UP) {
       if(cursor_y > 0) {
         cursor_y--;
@@ -370,8 +371,36 @@ void core1_entry() { // uses core 1 to main core
       }
       update_delay();
     } else if (Key.key_pressed & CODE_KEY_A) {
+      music_table_t temp_sound[USING_CH] = {0,};
+      temp_sound[0] = Music_Table[cursor_y * USING_CH + (cursor_x / 4)];
+      Sound.set_mute(false);
+      Sound.play_sound(temp_sound, USING_CH);
     } else if (Key.key_pressed & CODE_KEY_B) {
+      uint16_t temp_sound;
+      temp_sound = Music_Table[cursor_y * 4 + (cursor_x / 4)].value;
+      temp_sound >>= (4 * (3 - (cursor_x % 4)));
+      temp_sound &= 0x000F;
+      if (temp_sound == 0x00) {
+        temp_sound = 0x0F;
+      } else {
+        temp_sound--;
+      }
+      Music_Table[cursor_y * 4 + (cursor_x / 4)].value = Music_Table[cursor_y * 4 + (cursor_x / 4)].value & ~(0x000F << (4 * (3 - (cursor_x % 4))));
+      Music_Table[cursor_y * 4 + (cursor_x / 4)].value = Music_Table[cursor_y * 4 + (cursor_x / 4)].value | (temp_sound << (4 * (3 - (cursor_x % 4))));
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
     } else if (Key.key_pressed & CODE_KEY_X) {
+      uint16_t temp_sound;
+      temp_sound = Music_Table[cursor_y * 4 + (cursor_x / 4)].value;
+      temp_sound >>= (4 * (3 - (cursor_x % 4)));
+      temp_sound &= 0x000F;
+      if (temp_sound == 0x0F) {
+        temp_sound = 0x00;
+      } else {
+        temp_sound++;
+      }
+      Music_Table[cursor_y * 4 + (cursor_x / 4)].value = Music_Table[cursor_y * 4 + (cursor_x / 4)].value & ~(0x000F << (4 * (3 - (cursor_x % 4))));
+      Music_Table[cursor_y * 4 + (cursor_x / 4)].value = Music_Table[cursor_y * 4 + (cursor_x / 4)].value | (temp_sound << (4 * (3 - (cursor_x % 4))));
+      update_cursor(cursor_x, cursor_y, cursor_x_prv, cursor_y_prv);
     } else if (Key.key_pressed & CODE_KEY_Y) {
     } else if (Key.key_pressed & CODE_KEY_ZL) {
       if (Lcd.get_bright() < 50) {
