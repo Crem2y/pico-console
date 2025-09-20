@@ -1,3 +1,14 @@
+# Generated Cmake Pico project file
+
+cmake_minimum_required(VERSION 3.13)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Initialise pico_sdk from installed location
+# (note this can come from environment, CMake cache etc)
+
 # == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
 if(WIN32)
     set(USERHOME $ENV{USERPROFILE})
@@ -12,60 +23,35 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-# for pico W board
-set(PICO_BOARD pico_w)
-set(PICO_CYW43_SUPPORTED 1)
+set(PICO_BOARD pico_w CACHE STRING "Board type")
 
-cmake_minimum_required(VERSION 3.13)
-
-set(CMAKE_SIZE arm-none-eabi-size)
-set(PICO_SDK_PATH ../../pico-sdk)
+if(PICO_SDK_PATH)
+else()
+    set(PICO_SDK_PATH ../../pico-sdk)
+endif()
 include(pico_sdk_import.cmake)
 
-get_filename_component(PROJ_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-
-message(STATUS "building project \"${PROJ_NAME}\"...")
-
-# project([project_name] C CXX ASM)
-# output : [project_name].uf2
-project(${PROJ_NAME} LANGUAGES
-  C
-  CXX
-  ASM
-  VERSION
-  1.0.0
-)
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+project(pico_console C CXX ASM)
 
 add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz
 
 pico_sdk_init()
 
+add_executable(${PROJECT_NAME}
+  src/hw_test.cpp
+)
+
 add_subdirectory(driver)
 add_subdirectory(middleware)
 
-include_directories(
+target_include_directories(${PROJECT_NAME} PRIVATE
   ./include
 )
-
-# add_executable(${PROJECT_NAME} [src1.c] [src2.c] [src3.c] ...)
-#add_executable(${PROJECT_NAME} src/main.cpp)
-add_executable(${PROJECT_NAME} src/hw_test.cpp)
-
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-  COMMAND ${CMAKE_SIZE} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
-  COMMENT "RAM/Flash Usage : "
-)
-
-pico_add_extra_outputs(${PROJECT_NAME})
 
 target_link_libraries(${PROJECT_NAME}
   pico_stdlib
   pico_multicore
   pico_bootsel_via_double_reset # Double tap reset into bootrom
-  pico_cyw43_arch_none # for pico W board
   middleware
   driver
 )
@@ -73,4 +59,10 @@ target_link_libraries(${PROJECT_NAME}
 pico_enable_stdio_usb(${PROJECT_NAME} 0)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
-message(STATUS "building project \"${PROJ_NAME}\" completed!")
+pico_add_extra_outputs(${PROJECT_NAME})
+
+set(CMAKE_SIZE arm-none-eabi-size)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_SIZE} ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.elf
+  COMMENT "RAM/Flash Usage : "
+)
