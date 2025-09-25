@@ -34,11 +34,13 @@ include(pico_sdk_import.cmake)
 project(pico_console C CXX ASM)
 
 add_compile_definitions(SYS_CLK_MHZ=200) # set clock to 200MHz
+add_compile_definitions(USE_PRINTF)
 
 pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
   src/hw_test.cpp
+  src/hw_config.c
 )
 
 add_subdirectory(driver)

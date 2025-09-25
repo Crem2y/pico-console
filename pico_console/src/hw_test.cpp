@@ -24,10 +24,14 @@
 #include "mcp4725.hpp"
 #include "pca9554.hpp"
 #include "tm022hdh26.hpp"
-#include "sd_spi.hpp"
+//#include "sd_spi.hpp"
 #include "usb_sw.hpp"
 #include "pico_w_bt.hpp"
 #include "pico_w_wifi.hpp"
+
+#include "hw_config.h"
+#include "f_util.h"
+#include "ff.h"
 
 // middlewares
 #include "sound_system.hpp"
@@ -40,7 +44,7 @@ tm022hdh26 Lcd = tm022hdh26(spi0, 19,16,18, 13,14,15,12);
 pca9554 Key = pca9554(i2c1, 3,2);
 liBattery Bat = liBattery(28, ((double)1/2));
 irRemote Ir = irRemote(21);
-sdSpi Sdcard = sdSpi(spi0, 19,16,18, 17,20);
+//sdSpi Sdcard = sdSpi(spi0, 19,16,18, 17,20);
 usbSw Swusb = usbSw(6,7);
 //picoWBt Bt = picoWBt();
 picoWWifi Wifi = picoWWifi();
@@ -111,8 +115,8 @@ int main() { // uses core 0 to sub core
   LOG_PRINTF("BAT ok\n");
   Ir.init();
   LOG_PRINTF("IR ok\n");
-  Sdcard.init();
-  LOG_PRINTF("SD card ok\n");
+  //Sdcard.init();
+  //LOG_PRINTF("SD card ok\n");
   Swusb.init();
   LOG_PRINTF("SW USB ok\n");
   LOG_PRINTF("all HWs ok!\n");
@@ -626,75 +630,37 @@ void menu_sd_test(void) {
   Lcd.setCursor(0,0);
   Lcd.print_5x8("SD card test");
 
-  sleep_ms(100);
-  char string_buf[32];
-  sprintf(string_buf, "SD card : %s", Sdcard.card_check() ? "inserted    " : "not inserted");
-  Lcd.setCursor(0,16);
-  Lcd.print_5x8(string_buf);
-
-  int ret = Sdcard.card_init();
-  if(ret < 0) {
-    Sdcard.card_deinit();
-  }
-
-  sprintf(string_buf, "inited : %s", Sdcard.info.is_inited ? "yes" : "error");
-  Lcd.setCursor(0,32);
-  Lcd.print_5x8(string_buf);
-
-  if(!Sdcard.info.is_inited) {
-    sprintf(string_buf, "(%d)", ret);
-    Lcd.print_5x8(string_buf);
-
-  } else {
-    Lcd.setCursor(0,48);
-    Lcd.print_5x8("SD card type : ");
-  
-    switch (Sdcard.info.type)
-    {
-    case SD_TYPE_SDSC:
-      Lcd.print_5x8("SDSC");
-      break;
-    case SD_TYPE_SDHC:
-      if(Sdcard.info.size > 34359738368) { // 34359738368 = 1024^3
-        Lcd.print_5x8("SDXC");
-      } else {
-        Lcd.print_5x8("SDHC");
-      }
-      break;
-    default:
-      Lcd.print_5x8("UNKNOWN");
-      break;
+    FATFS fs;
+    FIL fil;
+    const char* const filename = "filename.txt";
+    FRESULT fr = f_mount(&fs, "", 1);
+    if (FR_OK != fr) {
+        LOG_PRINTF("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+        goto sd_unmount;
     }
 
-    Lcd.setCursor(0,64);
-    Lcd.print_5x8("size : ");
-    sprintf(string_buf, "%llu MB", (Sdcard.info.size / 1000000));
-    Lcd.print_5x8(string_buf);
+    // Open a file and write to it
+    fr = f_open(&fil, filename, FA_OPEN_APPEND | FA_WRITE);
+    if (FR_OK != fr && FR_EXIST != fr) {
+        LOG_PRINTF("f_open(%s) error: %s (%d)\n", filename, FRESULT_str(fr), fr);
+        goto sd_unmount;
+    }
 
-    int ret;
-    uint8_t buf[512] = {0,};
-    ret = Sdcard.sector_read(0, buf);
-    if(ret < 0) {
-      LOG_PRINTF("sector_read error(%d)\n", ret);
+    if (f_printf(&fil, "Hello, world!\n") < 0) {
+        LOG_PRINTF("f_printf failed\n");
+        goto sd_unmount;
     }
-    LOG_PRINTF("SD SECTOR[0] : ");
-    for(int i=0; i<512; i++)
-    {
-      LOG_PRINTF("%02X ", buf[i]);
-    }
-    LOG_PRINTF("\n");
 
-    ret = Sdcard.sector_read(1, buf);
-    if(ret < 0) {
-      LOG_PRINTF("sector_read error(%d)\n", ret);
+    // Close the file
+    fr = f_close(&fil);
+    if (FR_OK != fr) {
+        LOG_PRINTF("f_close error: %s (%d)\n", FRESULT_str(fr), fr);
     }
-    LOG_PRINTF("SD SECTOR[1] : ");
-    for(int i=0; i<512; i++)
-    {
-      LOG_PRINTF("%02X ", buf[i]);
-    }
-    LOG_PRINTF("\n");
-  }
+sd_unmount:
+    // Unmount the SD card
+    f_unmount("");
+
+    LOG_PRINTF("Goodbye, world!");
 
   while(1) {
     sleep_ms(100);

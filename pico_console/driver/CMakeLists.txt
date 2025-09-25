@@ -7,7 +7,8 @@ add_subdirectory(ir_remote)
 add_subdirectory(mcp4725)
 add_subdirectory(pca9554)
 add_subdirectory(tm022hdh26)
-add_subdirectory(sd_spi)
+#add_subdirectory(sd_spi)
+add_subdirectory(no-OS-FatFS-SD-SDIO-SPI-RPi-Pico/src build)
 add_subdirectory(pico_w_wifi)
 add_subdirectory(pico_w_bt)
 add_subdirectory(usb_sw)
@@ -22,7 +23,8 @@ target_link_libraries(driver INTERFACE
   mcp4725
   pca9554
   tm022hdh26
-  sd_spi
+  #sd_spi
+  no-OS-FatFS-SD-SDIO-SPI-RPi-Pico
   pico_w_wifi
   pico_w_bt
   usb_sw
